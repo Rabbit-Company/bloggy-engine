@@ -19,5 +19,8 @@
 	"bugs": {
 		"url": "https://github.com/Rabbit-Company/bloggy-engine/issues"
 	},
-	"homepage": "https://github.com/Rabbit-Company/bloggy-engine#readme"
+	"homepage": "https://github.com/Rabbit-Company/bloggy-engine#readme",
+	"dependencies": {
+		"colors": "^1.4.0"
+	}
 }

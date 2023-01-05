@@ -1,7 +1,8 @@
 let args = process.argv;
 const fs = require('fs');
-let actions = ["create", "delete", "list"];
-let metadata = "";
+const colors = require('colors/safe');
+let actions = ["create", "delete", "update", "list"];
+let metadata;
 let template = "";
 let filenames = [];
 
@@ -21,9 +22,8 @@ if(args.length < 4){
 }
 
 let location = args[2];
-
 try{
-	metadata = fs.readFileSync(location + "/metadata.js", 'utf8');
+	metadata = require(location + "/metadata.js");
 }catch(err){
 	console.log("Provided location '" + location + "' does not contain metadata.js file!");
 	process.exit();
@@ -58,7 +58,33 @@ function actionList(){
 	console.log("List of posts:")
 	filenames.forEach(file => {
 		if(file.includes(".md")){
-			console.log(" - " + file);
+			let id = file.replace(".md", "");
+			let active = Object.keys(metadata.posts).includes(id);
+			let staticPost = false;
+
+			if(!active){
+				console.log(" - " + file + " - false");
+				return;
+			}
+
+			let date = metadata.posts[id].date;
+			date = date.split("-");
+
+			let staticPostLocation = location.replace("/content", "/") + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
+
+			try{
+				fs.readFileSync(staticPostLocation, 'utf8');
+				staticPost = true;
+			}catch(err){
+				staticPost = false;
+			}
+
+			let text = " - " + file + " - ";
+			text += (active) ? colors.green("metadata") : colors.red("metadata");
+			text += " - ";
+			text += (staticPost) ? colors.green("static") : colors.red("static");
+
+			console.log(text);
 		}
 	});
 }
