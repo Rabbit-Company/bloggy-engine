@@ -112,6 +112,7 @@ function updateMain(){
 	tempTemplate = tempTemplate.replaceAll("::metaDescription::", metadata.description);
 	tempTemplate = tempTemplate.replaceAll("::title::", metadata.title);
 	tempTemplate = tempTemplate.replaceAll("::description::", metadata.description);
+	tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
 
 	let social = "";
 	if(typeof(metadata.website) === 'string') social += "<a href='" + metadata.website + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Website</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M19.5 7a8.998 8.998 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4'></path><path d='M11.5 3a16.989 16.989 0 0 0 -1.826 4'></path><path d='M12.5 3a16.989 16.989 0 0 1 1.828 4.004'></path><path d='M19.5 17a8.998 8.998 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4'></path><path d='M11.5 21a16.989 16.989 0 0 1 -1.826 -4'></path><path d='M12.5 21a16.989 16.989 0 0 0 1.828 -4.004'></path><path d='M2 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M17 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M9.5 10l1 4l1.5 -4l1.5 4l1 -4'></path></svg></a>";
@@ -176,6 +177,8 @@ function actionUpdate(){
 		tempTemplate = tempTemplate.replaceAll("::metaTwitterHandle::", metadata.twitter.replace("https://twitter.com/", "@"));
 		tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html");
 		tempTemplate = tempTemplate.replaceAll("::shareTwitter::", metadata.posts[id].title + "%0A%0A" + metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html");
+
+		tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
 
 		let social = "";
 		if(typeof(metadata.website) === 'string') social += "<a href='" + metadata.website + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Website</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M19.5 7a8.998 8.998 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4'></path><path d='M11.5 3a16.989 16.989 0 0 0 -1.826 4'></path><path d='M12.5 3a16.989 16.989 0 0 1 1.828 4.004'></path><path d='M19.5 17a8.998 8.998 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4'></path><path d='M11.5 21a16.989 16.989 0 0 1 -1.826 -4'></path><path d='M12.5 21a16.989 16.989 0 0 0 1.828 -4.004'></path><path d='M2 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M17 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M9.5 10l1 4l1.5 -4l1.5 4l1 -4'></path></svg></a>";
