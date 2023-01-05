@@ -94,6 +94,10 @@ function actionCreate(){
 
 }
 
+function getWordCount(str) {
+	return str.trim().split(/\s+/).length;
+}
+
 function actionUpdate(){
 	filenames.forEach(file => {
 		if(!file.includes(".md")) return;
@@ -136,8 +140,15 @@ function actionUpdate(){
 
 		try{
 			let mark = fs.readFileSync(location + "/" + id + ".md", 'utf8');
+			let readTime = Math.round(getWordCount(mark) / 200);
+
+			let html = "<h1 class='post-title'>" + metadata.posts[id].title + "</h1>";
+			html += "<div class='flex space-x-1 f16'><time datetime='" + metadata.posts[id].date + "'>" + metadata.posts[id].date + "</time><span aria-hidden='true'>&middot;</span><span>" + readTime + " min read</span></div>";
+			html += "<div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/?author=" + metadata.posts[id].author.replace(" ", "_") + "'><span class='sr-only'>" + metadata.posts[id].author + "</span><img class='h-12 w-12 rounded-full' src='" + metadata.posts[id].avatar + "' alt='" + metadata.posts[id].author + "'></a></div><div class='ml-3'><p class='f16 font-medium'><a href='/?author=" + metadata.posts[id].author.replace(" ", "_") + "'>" + metadata.posts[id].author + "</a></p></div></div>";
+
 			let md = new MarkdownIt();
-			tempTemplate = tempTemplate.replace("::post::", md.render(mark));
+			html += md.render(mark);
+			tempTemplate = tempTemplate.replace("::post::", html);
 		}catch(err){
 			console.log(" - " + file + " - " + colors.red("Error: While trying to open '" + id + ".md'!"));
 			return;
