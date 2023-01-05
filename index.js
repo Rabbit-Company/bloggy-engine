@@ -7,7 +7,7 @@ let template = "";
 let filenames = [];
 
 if(args.includes("version")){
-	console.log("Version: " + process.env.npm_package_version);
+	console.log(colors.yellow("Version: " + process.env.npm_package_version));
 	process.exit();
 }
 
@@ -25,14 +25,14 @@ let location = args[2];
 try{
 	metadata = require(location + "/metadata.js");
 }catch(err){
-	console.log("Provided location '" + location + "' does not contain metadata.js file!");
+	console.log(colors.red("Provided location '" + location + "' does not contain metadata.js file!"));
 	process.exit();
 }
 
 let action = args[3];
 
 if(!actions.includes(action)){
-	console.log("Provided action '" + action + "' is invalid!\n");
+	console.log(colors.red("Provided action '" + action + "' is invalid!\n"));
 	console.log("Available actions:");
 	actions.forEach(action => {
 		console.log(" - " + action);
@@ -43,14 +43,14 @@ if(!actions.includes(action)){
 try{
 	template = fs.readFileSync("template.html", 'utf8');
 }catch(err){
-	console.log("Something went wrong while reading 'template.html' file!");
+	console.log(colors.red("Something went wrong while reading 'template.html' file!"));
 	process.exit();
 }
 
 try{
 	filenames = fs.readdirSync(location);
 }catch(err){
-	console.log("Something went wrong while reading '" + location + "' directory!");
+	console.log(colors.red("Something went wrong while reading '" + location + "' directory!"));
 	process.exit();
 }
 
