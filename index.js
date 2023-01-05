@@ -73,7 +73,7 @@ function actionList(){
 		let date = metadata.posts[id].date;
 		date = date.split("-");
 
-		let staticPostLocation = location.replace("/content", "/") + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
+		let staticPostLocation = location.replace("/content", "/") + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
 
 		try{
 			fs.readFileSync(staticPostLocation, 'utf8');
@@ -101,9 +101,27 @@ function actionUpdate(){
 
 		let active = Object.keys(metadata.posts).includes(id);
 		if(!active){
-			console.log(" - " + file + " - false");
+			console.log(" - " + file + " - " + colors.yellow("Skipped: Doesn't contain metadata!"));
 			return;
 		}
+
+		let date = metadata.posts[id].date;
+		date = date.split("-");
+
+		let staticPostLocation = location.replace("/content", "/") + date[0] + "/" + date[1] + "/" + date[2];
+
+		try{
+			fs.readFileSync(staticPostLocation + "/" + id + ".html", 'utf8');
+			console.log(" - " + file + " - " + colors.green("Skipped: Post is already live!"));
+			return;
+		}catch{}
+
+		if(!fs.existsSync(staticPostLocation)){
+			fs.mkdirSync(staticPostLocation, { recursive: true });
+		}
+
+		fs.writeFileSync(staticPostLocation + "/" + id + ".html", template);
+		console.log(" - " + file + " - " + colors.green("Success: Post has been created!"));
 	});
 }
 
