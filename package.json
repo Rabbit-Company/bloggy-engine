@@ -1,0 +1,23 @@
+{
+	"name": "bloggy-engine",
+	"version": "1.0.2",
+	"description": "Simple blog engine",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Rabbit-Company/bloggy-engine.git"
+	},
+	"keywords": [
+		"blog",
+		"engine"
+	],
+	"author": "Rabbit Company LLC",
+	"license": "GPL-3.0",
+	"bugs": {
+		"url": "https://github.com/Rabbit-Company/bloggy-engine/issues"
+	},
+	"homepage": "https://github.com/Rabbit-Company/bloggy-engine#readme"
+}
