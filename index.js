@@ -57,38 +57,52 @@ try{
 function actionList(){
 	console.log("List of posts:")
 	filenames.forEach(file => {
-		if(file.includes(".md")){
-			let id = file.replace(".md", "");
-			let active = Object.keys(metadata.posts).includes(id);
-			let staticPost = false;
+		if(!file.includes(".md")) return;
 
-			if(!active){
-				console.log(" - " + file + " - false");
-				return;
-			}
+		let id = file.replace(".md", "");
+		let active = Object.keys(metadata.posts).includes(id);
+		let staticPost = false;
 
-			let date = metadata.posts[id].date;
-			date = date.split("-");
-
-			let staticPostLocation = location.replace("/content", "/") + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
-
-			try{
-				fs.readFileSync(staticPostLocation, 'utf8');
-				staticPost = true;
-			}catch(err){
-				staticPost = false;
-			}
-
-			let text = " - " + file + " - ";
-			text += (active) ? colors.green("metadata") : colors.red("metadata");
-			text += " - ";
-			text += (staticPost) ? colors.green("static") : colors.red("static");
-
-			console.log(text);
+		if(!active){
+			console.log(" - " + file + " - false");
+			return;
 		}
+
+		let date = metadata.posts[id].date;
+		date = date.split("-");
+
+		let staticPostLocation = location.replace("/content", "/") + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
+
+		try{
+			fs.readFileSync(staticPostLocation, 'utf8');
+			staticPost = true;
+		}catch(err){
+			staticPost = false;
+		}
+
+		let text = " - " + file + " - ";
+		text += (active) ? colors.green("metadata") : colors.red("metadata");
+		text += " - ";
+		text += (staticPost) ? colors.green("static") : colors.red("static");
+
+		console.log(text);
+	});
+}
+
+function actionCreate(){
+
+}
+
+function actionUpdate(){
+	filenames.forEach(file => {
+		if(!file.includes(".md")) return;
 	});
 }
 
 if(action == "list"){
 	actionList();
+}else if(action == "create"){
+	actionCreate();
+}else if(action == "update"){
+	actionUpdate();
 }
