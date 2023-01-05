@@ -120,7 +120,13 @@ function actionUpdate(){
 			fs.mkdirSync(staticPostLocation, { recursive: true });
 		}
 
-		fs.writeFileSync(staticPostLocation + "/" + id + ".html", template);
+		let tempTemplate = template;
+		tempTemplate = tempTemplate.replace("::metatitle::", metadata.posts[id].title);
+		tempTemplate = tempTemplate.replace("::metaDescription::", metadata.posts[id].description);
+		tempTemplate = tempTemplate.replace("::title::", metadata.title);
+		tempTemplate = tempTemplate.replace("::description::", metadata.description);
+
+		fs.writeFileSync(staticPostLocation + "/" + id + ".html", tempTemplate);
 		console.log(" - " + file + " - " + colors.green("Success: Post has been created!"));
 	});
 }
