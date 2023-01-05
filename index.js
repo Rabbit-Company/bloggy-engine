@@ -60,11 +60,13 @@ function actionList(){
 		if(!file.includes(".md")) return;
 
 		let id = file.replace(".md", "");
+		let text = " - " + file + " - ";
 		let active = Object.keys(metadata.posts).includes(id);
+		text += (active) ? colors.green("metadata") : colors.red("metadata");
 		let staticPost = false;
 
 		if(!active){
-			console.log(" - " + file + " - false");
+			console.log(text);
 			return;
 		}
 
@@ -80,8 +82,6 @@ function actionList(){
 			staticPost = false;
 		}
 
-		let text = " - " + file + " - ";
-		text += (active) ? colors.green("metadata") : colors.red("metadata");
 		text += " - ";
 		text += (staticPost) ? colors.green("static") : colors.red("static");
 
@@ -96,6 +96,14 @@ function actionCreate(){
 function actionUpdate(){
 	filenames.forEach(file => {
 		if(!file.includes(".md")) return;
+
+		let id = file.replace(".md", "");
+
+		let active = Object.keys(metadata.posts).includes(id);
+		if(!active){
+			console.log(" - " + file + " - false");
+			return;
+		}
 	});
 }
 
