@@ -94,9 +94,18 @@ try{
 }
 
 function actionList(){
+	displayTitle();
+	console.log(colors.yellow("List will display every .md file located in 'contant' directory."));
+	console.log(colors.yellow("Each .md file needs to have a metadata provided in metadata.js file."));
+	console.log(colors.yellow("If " + colors.red("metadata") + " is shown in " + colors.red("red") +", then it needs to be created with 'create' command."));
+	console.log(colors.yellow("If " + colors.green("metadata") + " is shown in " + colors.green("green") +", then post can be auto created with 'update' command."));
+	console.log(colors.yellow("When " + colors.green("live") + " is colored " + colors.green("green") +", then we know this post is live / online / has already been created.\n"));
 	console.log("List of posts:")
+	let totalfiles = 0;
+	let totallive = 0;
 	filenames.forEach(file => {
 		if(!file.includes(".md")) return;
+		totalfiles++;
 
 		let id = file.replaceAll(".md", "");
 		let text = " - " + file + " - ";
@@ -117,15 +126,28 @@ function actionList(){
 		try{
 			fs.readFileSync(staticPostLocation, 'utf8');
 			staticPost = true;
+			totallive++;
 		}catch(err){
 			staticPost = false;
 		}
 
 		text += " - ";
-		text += (staticPost) ? colors.green("static") : colors.red("static");
+		text += (staticPost) ? colors.green("live") : colors.red("live");
 
 		console.log(text);
 	});
+
+	// Stats
+	console.log(colors.cyan("\nStats:"));
+	console.log(colors.cyan(" - Total .md files: " + totalfiles));
+	console.log(colors.cyan(" - Total live posts: " + totallive));
+
+	if(totalfiles != totallive){
+		console.log(colors.red("\nThere seems to be " + (totalfiles-totallive) + " posts that haven't been created yet!"));
+		console.log(colors.red("If those posts already have a " + colors.green("metadata") + ", then you can just execute 'update' command to create them."));
+	}
+
+	console.log("");
 }
 
 function actionCreate(){
@@ -164,6 +186,7 @@ function updateMain(){
 }
 
 function actionUpdate(){
+	displayTitle();
 	updateMain();
 
 	siteMapLinks.push({ url: metadata.domain, changefreq: 'daily', priority: 1 });
