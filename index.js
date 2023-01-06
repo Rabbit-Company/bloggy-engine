@@ -1,12 +1,15 @@
 let args = process.argv;
 const fs = require('fs');
 const colors = require('colors/safe');
+const { SitemapStream, streamToPromise } = require('sitemap');
+const { Readable } = require('stream');
 let MarkdownIt = require('markdown-it');
 let actions = ["create", "delete", "update", "list"];
 let metadata;
 let templateMain = "";
 let templatePost = "";
 let filenames = [];
+let siteMapLinks = [];
 
 if(args.includes("version")){
 	console.log(colors.yellow("Version: " + process.env.npm_package_version));
@@ -135,6 +138,9 @@ function updateMain(){
 
 function actionUpdate(){
 	updateMain();
+
+	siteMapLinks.push({ url: metadata.domain, changefreq: 'daily', priority: 1 });
+
 	filenames.forEach(file => {
 		if(!file.includes(".md")) return;
 
@@ -148,6 +154,10 @@ function actionUpdate(){
 
 		let date = metadata.posts[id].date;
 		date = date.split("-");
+
+		// SiteMap
+		let siteMapURL = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
+		siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.8 });
 
 		let staticPostLocation = location + "/" + date[0] + "/" + date[1] + "/" + date[2];
 
@@ -205,6 +215,13 @@ function actionUpdate(){
 
 		fs.writeFileSync(staticPostLocation + "/" + id + ".html", tempTemplate);
 		console.log(" - " + file + " - " + colors.green("Success: Post has been created!"));
+	});
+
+	//Update siteMap
+	const stream = new SitemapStream( { hostname: metadata.domain } );
+	streamToPromise(Readable.from(siteMapLinks).pipe(stream)).then((data) => {
+		fs.writeFileSync(location + "/sitemap.xml", data.toString());
+		console.log(" - " + colors.blue("SiteMap") + " - " + colors.green("Success: SiteMap has been created!"));
 	});
 }
 
