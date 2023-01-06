@@ -151,7 +151,9 @@ function actionList(){
 }
 
 function actionCreate(){
-
+	displayTitle();
+	console.log(colors.yellow("Create action still hasn't been made yet. Until then you can manually edit metadata.js file to create metadata for new posts."));
+	console.log(colors.yellow("After metadata for the post has been added in metadata.js file, you can then execute 'update' command for posts to be generated.\n"));
 }
 
 function getWordCount(str) {
@@ -289,10 +291,17 @@ function actionUpdate(){
 	console.log(" - " + colors.blue("robots.txt") + " - " + colors.green("Success: robots.txt has been created!"));
 }
 
+function actionDelete(){
+	displayTitle();
+	console.log(colors.yellow("Delete action still hasn't been made yet. Until then you can delete posts manually.\n"));
+}
+
 if(action == "list"){
 	actionList();
 }else if(action == "create"){
 	actionCreate();
 }else if(action == "update"){
 	actionUpdate();
+}else if(action == "delete"){
+	actionDelete();
 }
