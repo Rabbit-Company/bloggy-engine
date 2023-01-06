@@ -2,9 +2,10 @@
 	"name": "bloggy-engine",
 	"version": "1.0.3",
 	"description": "Simple blog engine",
-	"main": "index.js",
+	"main": "bloggy-engine.js",
 	"scripts": {
-		"start": "node index.js"
+		"start": "node bloggy-engine.js",
+		"build": "pkg bloggy-engine.js"
 	},
 	"repository": {
 		"type": "git",

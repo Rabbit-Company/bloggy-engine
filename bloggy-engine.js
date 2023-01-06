@@ -4,7 +4,7 @@ const colors = require('colors/safe');
 const { SitemapStream, streamToPromise } = require('sitemap');
 const { Readable } = require('stream');
 let MarkdownIt = require('markdown-it');
-let actions = ["create", "delete", "update", "list"];
+let actions = ["create", "delete", "update", "list", "version"];
 let metadata;
 let templateMain = "";
 let templatePost = "";
@@ -12,57 +12,84 @@ let filenames = [];
 let siteMapLinks = [];
 
 if(args.includes("version")){
-	console.log(colors.yellow("Version: " + process.env.npm_package_version));
+	displayTitle();
+	console.log(colors.yellow("Version: 1.0.3"));
+	console.log("");
 	process.exit();
 }
 
+function displayTitle(){
+	console.log("\n");
+	console.log(colors.blue(String.raw`  ____  _                         `));
+	console.log(colors.blue(String.raw` |  _ \| |                        `));
+	console.log(colors.blue(String.raw` | |_) | | ___   ____  ____ _   _ `));
+	console.log(colors.blue(String.raw` |  _ <| |/ _ \ / _  |/ _  | | | |`));
+	console.log(colors.blue(String.raw` | |_) | | (_) | (_| | (_| | |_| |`));
+	console.log(colors.blue(String.raw` |____/|_|\___/ \__, |\__, |\__, |`));
+	console.log(colors.blue(String.raw`                 __/ | __/ | __/ |`));
+	console.log(colors.blue(String.raw`                |___/ |___/ |___/ `));
+	console.log("\n");
+}
+
 if(args.length < 4){
-	console.log("Bloggy website directory location and Action needs to be provided in the parameters!\n");
-	console.log("Format: bloggy-engine /home/ziga/Documents/Projects/Bloggy/website list\n")
+	displayTitle();
+	console.log(colors.yellow("Bloggy website directory location and Action needs to be provided in the parameters!\n"));
+	console.log(colors.cyan("1. First parameter is always required to be the full path / location of the Bloggy website / root directory."));
+	console.log(colors.cyan("2. Second parameter needs to be the action name. You can see action names on the list below.\n"));
+	console.log(colors.white("Example format: bloggy-engine /home/ziga/Documents/Projects/Bloggy/website list\n"));
 	console.log("Available actions:");
 	actions.forEach(action => {
 		console.log(" - " + action);
 	});
+	console.log("");
 	process.exit();
 }
 
 let location = args[2];
+if(location[location.length-1] == '/') location = location.slice(0, -1);
 try{
 	metadata = require(location + "/content/metadata.js");
 }catch(err){
-	console.log(colors.red("Provided location '" + location + "' does not contain a 'content' folder with metadata.js file!"));
+	displayTitle();
+	console.log(colors.red("Provided path / location '" + location + "' does not contain a 'content' folder with metadata.js file inside!\n"));
 	process.exit();
 }
 
 let action = args[3];
-
 if(!actions.includes(action)){
+	displayTitle();
 	console.log(colors.red("Provided action '" + action + "' is invalid!\n"));
 	console.log("Available actions:");
 	actions.forEach(action => {
 		console.log(" - " + action);
 	});
+	console.log("");
 	process.exit();
 }
 
 try{
 	templateMain = fs.readFileSync("template-main.html", 'utf8');
 }catch(err){
-	console.log(colors.red("Something went wrong while reading 'template-main.html' file!"));
+	displayTitle();
+	console.log(colors.red("It seems that 'template-main.html' file is missing!\n"));
+	console.log(colors.red("Make sure 'template-main.html' file is located in the same folder as bloggy-engine executable.\n"));
 	process.exit();
 }
 
 try{
 	templatePost = fs.readFileSync("template-post.html", 'utf8');
 }catch(err){
-	console.log(colors.red("Something went wrong while reading 'template-post.html' file!"));
+	displayTitle();
+	console.log(colors.red("It seems that 'template-post.html' file is missing!\n"));
+	console.log(colors.red("Make sure 'template-post.html' file is located in the same folder as bloggy-engine executable.\n"));
 	process.exit();
 }
 
 try{
 	filenames = fs.readdirSync(location + "/content");
 }catch(err){
-	console.log(colors.red("Something went wrong while reading 'content' directory!"));
+	displayTitle();
+	console.log(colors.red("Something went wrong while reading 'content' directory!\n"));
 	process.exit();
 }
 
