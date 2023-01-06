@@ -217,12 +217,17 @@ function actionUpdate(){
 		console.log(" - " + file + " - " + colors.green("Success: Post has been created!"));
 	});
 
-	//Update siteMap
+	// Generate sitemap.xml
 	const stream = new SitemapStream( { hostname: metadata.domain } );
 	streamToPromise(Readable.from(siteMapLinks).pipe(stream)).then((data) => {
 		fs.writeFileSync(location + "/sitemap.xml", data.toString());
-		console.log(" - " + colors.blue("SiteMap") + " - " + colors.green("Success: SiteMap has been created!"));
+		console.log(" - " + colors.blue("sitemap.xml") + " - " + colors.green("Success: sitemap.xml has been created!"));
 	});
+
+	// Generate robots.txt
+	let robots = "User-agent: *\nDisallow: /cgi-bin/\nSitemap: " + metadata.domain + "/sitemap.xml";
+	fs.writeFileSync(location + "/robots.txt", robots);
+	console.log(" - " + colors.blue("robots.txt") + " - " + colors.green("Success: robots.txt has been created!"));
 }
 
 if(action == "list"){
