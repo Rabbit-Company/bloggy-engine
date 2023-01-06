@@ -206,6 +206,15 @@ function actionUpdate(){
 			html += "<div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/?author=" + metadata.posts[id].author.replaceAll(" ", "_") + "'><span class='sr-only'>" + metadata.posts[id].author + "</span><img class='h-12 w-12 rounded-full' src='" + metadata.posts[id].avatar + "' alt='" + metadata.posts[id].author + "'></a></div><div class='ml-3'><p class='f16 font-medium'><a href='/?author=" + metadata.posts[id].author.replaceAll(" ", "_") + "'>" + metadata.posts[id].author + "</a></p></div></div>";
 
 			let md = new MarkdownIt();
+			// Adds target="_blank" to the links.
+			var defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, env, self) {
+				return self.renderToken(tokens, idx, options);
+			};
+			md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+				tokens[idx].attrPush(['target', '_blank']);
+				return defaultRender(tokens, idx, options, env, self);
+			};
+
 			html += md.render(mark);
 			tempTemplate = tempTemplate.replaceAll("::post::", html);
 		}catch(err){
