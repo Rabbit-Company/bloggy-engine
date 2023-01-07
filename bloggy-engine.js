@@ -212,7 +212,8 @@ function updateMain(){
 	let html = "";
 	Object.keys(metadata.posts).forEach(key => {
 		let date = metadata.posts[key].date.split("-");
-		let location = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + key + ".html";
+		let location = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + key;
+		if(!metadata.extensionHidden) location += ".html";
 		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' src='" + metadata.posts[key].picture + "' alt='" + metadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/?tag=" + metadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + metadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + metadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + metadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/?author=" + metadata.posts[key].author.replaceAll(" ", "_") + "'><span class='sr-only'>" + metadata.posts[key].author + "</span><img class='h-10 w-10 rounded-full' src='" + metadata.posts[key].avatar + "' alt='" + metadata.posts[key].author + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/?author=" + metadata.posts[key].author.replaceAll(" ", "_") + "' class='hover:underline'>" + metadata.posts[key].author + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + metadata.posts[key].date + "'>" + metadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + metadata.posts[key].read + " min read</span></div></div></div></div></div>";
 	});
 	tempTemplate = tempTemplate.replaceAll("::post::", html);
@@ -243,11 +244,13 @@ function actionUpdate(){
 		date = date.split("-");
 
 		// SiteMap
-		let siteMapURL = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
+		let siteMapURL = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
+		if(!metadata.extensionHidden) siteMapURL += ".html";
 		siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.8 });
 
 		// Feed
-		let postURL = metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
+		let postURL = metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
+		if(!metadata.extensionHidden) postURL += ".html";
 		let authorLink = metadata.domain + "/?author=" + metadata.posts[id].author.replaceAll(" ", "_");
 		let image = (metadata.posts[id].picture.startsWith('http')) ? metadata.posts[id].picture : metadata.domain + metadata.posts[id].picture;
 		feed.addItem({
@@ -295,7 +298,9 @@ function actionUpdate(){
 		tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/feed.rss");
 		tempTemplate = tempTemplate.replaceAll("::metaTwitterHandle::", metadata.twitter.replace("https://twitter.com/", "@"));
 		tempTemplate = tempTemplate.replaceAll("::metaURL::", postURL);
-		tempTemplate = tempTemplate.replaceAll("::shareTwitter::", metadata.posts[id].title + "%0A%0A" + metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html");
+		let shareTwitter = metadata.posts[id].title + "%0A%0A" + metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
+		if(!metadata.extensionHidden) shareTwitter += ".html";
+		tempTemplate = tempTemplate.replaceAll("::shareTwitter::", shareTwitter);
 
 		tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
 
