@@ -106,7 +106,7 @@ function createFeed(){
 		description: metadata.description,
 		id: metadata.domain,
 		link: metadata.domain,
-		language: "en",
+		language: metadata.language,
 		image: image,
 		favicon: image,
 		copyright: copyright,
@@ -115,8 +115,8 @@ function createFeed(){
 			atom: atomFeed
 		},
 		author: {
-			name: "Rabbit Company LLC",
-			email: "info@rabbit-company.com",
+			name: metadata.author,
+			email: metadata.email,
 			link: authorLink
 		}
 	});
@@ -247,6 +247,7 @@ function actionUpdate(){
 		// Feed
 		let postURL = metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
 		let authorLink = metadata.domain + "/?author=" + metadata.posts[id].author.replaceAll(" ", "_");
+		let image = (metadata.posts[id].picture.startsWith('http')) ? metadata.posts[id].picture : metadata.domain + metadata.posts[id].picture;
 		feed.addItem({
 			title: metadata.posts[id].title,
 			id: postURL,
@@ -257,7 +258,7 @@ function actionUpdate(){
 				link: authorLink
 			}],
 			date: new Date(metadata.posts[id].date),
-			image: metadata.posts[id].image
+			image: image
 		});
 
 		let staticPostLocation = location + "/" + date[0] + "/" + date[1] + "/" + date[2];
