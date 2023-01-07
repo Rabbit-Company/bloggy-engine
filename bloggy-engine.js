@@ -120,6 +120,8 @@ function createFeed(){
 			link: authorLink
 		}
 	});
+
+	feed.addCategory(metadata.category);
 }
 
 function actionList(){
@@ -279,6 +281,9 @@ function actionUpdate(){
 		tempTemplate = tempTemplate.replaceAll("::language::", metadata.language);
 		tempTemplate = tempTemplate.replaceAll("::metaAuthor::", metadata.posts[id].author);
 		tempTemplate = tempTemplate.replaceAll("::metaTag::", metadata.posts[id].tag);
+		tempTemplate = tempTemplate.replaceAll("::metaCategory::", metadata.category);
+		tempTemplate = tempTemplate.replaceAll("::metaPublishedTime::", new Date(metadata.posts[id].date).toISOString());
+		tempTemplate = tempTemplate.replaceAll("::metaModifiedTime::", new Date().toISOString());
 		if(metadata.posts[id].picture.startsWith("http")){
 			tempTemplate = tempTemplate.replaceAll("::metaImage::", metadata.posts[id].picture);
 		}else{
