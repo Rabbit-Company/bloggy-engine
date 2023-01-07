@@ -3,6 +3,7 @@ const fs = require('fs');
 const colors = require('colors/safe');
 const { SitemapStream, streamToPromise } = require('sitemap');
 const { Readable } = require('stream');
+const { Feed } = require('feed');
 let MarkdownIt = require('markdown-it');
 let actions = ["create", "delete", "update", "list", "version"];
 let metadata;
@@ -10,6 +11,7 @@ let templateMain = "";
 let templatePost = "";
 let filenames = [];
 let siteMapLinks = [];
+let feed;
 
 if(args.includes("version")){
 	displayTitle();
@@ -93,6 +95,33 @@ try{
 	process.exit();
 }
 
+function createFeed(){
+	let image = metadata.domain + "/images/logo.png";
+	let copyright = "© " + new Date().getFullYear() + " " + metadata.title + ", All rights reserved.";
+	let jsonFeed = metadata.domain + "/feed.json";
+	let atomFeed = metadata.domain + "/feed.atom";
+	let authorLink = (typeof(metadata.website) === 'string') ? metadata.website : metadata.domain;
+	feed = new Feed({
+		title: metadata.title,
+		description: metadata.description,
+		id: metadata.domain,
+		link: metadata.domain,
+		language: "en",
+		image: image,
+		favicon: image,
+		copyright: copyright,
+		feedLinks: {
+			json: jsonFeed,
+			atom: atomFeed
+		},
+		author: {
+			name: "Rabbit Company LLC",
+			email: "info@rabbit-company.com",
+			link: authorLink
+		}
+	});
+}
+
 function actionList(){
 	displayTitle();
 	console.log(colors.yellow("List will display every .md file located in 'contant' directory."));
@@ -166,6 +195,9 @@ function updateMain(){
 	tempTemplate = tempTemplate.replaceAll("::metaDescription::", metadata.description);
 	tempTemplate = tempTemplate.replaceAll("::title::", metadata.title);
 	tempTemplate = tempTemplate.replaceAll("::description::", metadata.description);
+	tempTemplate = tempTemplate.replaceAll("::language::", metadata.language);
+	tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/feed.rss");
+	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain);
 	tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
 
 	let social = "";
@@ -191,6 +223,7 @@ function actionUpdate(){
 	displayTitle();
 	updateMain();
 
+	createFeed();
 	siteMapLinks.push({ url: metadata.domain, changefreq: 'daily', priority: 1 });
 
 	filenames.forEach(file => {
@@ -211,6 +244,22 @@ function actionUpdate(){
 		let siteMapURL = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
 		siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.8 });
 
+		// Feed
+		let postURL = metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
+		let authorLink = metadata.domain + "/?author=" + metadata.posts[id].author.replaceAll(" ", "_");
+		feed.addItem({
+			title: metadata.posts[id].title,
+			id: postURL,
+			link: postURL,
+			description: metadata.posts[id].description,
+			author: [{
+				name: metadata.posts[id].author,
+				link: authorLink
+			}],
+			date: new Date(metadata.posts[id].date),
+			image: metadata.posts[id].image
+		});
+
 		let staticPostLocation = location + "/" + date[0] + "/" + date[1] + "/" + date[2];
 
 		try{
@@ -226,6 +275,7 @@ function actionUpdate(){
 		let tempTemplate = templatePost;
 		tempTemplate = tempTemplate.replaceAll("::metatitle::", metadata.posts[id].title);
 		tempTemplate = tempTemplate.replaceAll("::metaDescription::", metadata.posts[id].description);
+		tempTemplate = tempTemplate.replaceAll("::language::", metadata.language);
 		tempTemplate = tempTemplate.replaceAll("::metaAuthor::", metadata.posts[id].author);
 		tempTemplate = tempTemplate.replaceAll("::metaTag::", metadata.posts[id].tag);
 		if(metadata.posts[id].picture.startsWith("http")){
@@ -236,8 +286,9 @@ function actionUpdate(){
 		tempTemplate = tempTemplate.replaceAll("::title::", metadata.title);
 		tempTemplate = tempTemplate.replaceAll("::description::", metadata.description);
 		tempTemplate = tempTemplate.replaceAll("::metaDomain::", metadata.domain.replace("https://", ""));
+		tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/feed.rss");
 		tempTemplate = tempTemplate.replaceAll("::metaTwitterHandle::", metadata.twitter.replace("https://twitter.com/", "@"));
-		tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html");
+		tempTemplate = tempTemplate.replaceAll("::metaURL::", postURL);
 		tempTemplate = tempTemplate.replaceAll("::shareTwitter::", metadata.posts[id].title + "%0A%0A" + metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html");
 
 		tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
@@ -289,6 +340,19 @@ function actionUpdate(){
 	let robots = "User-agent: *\nDisallow: /cgi-bin/\nSitemap: " + metadata.domain + "/sitemap.xml";
 	fs.writeFileSync(location + "/robots.txt", robots);
 	console.log(" - " + colors.blue("robots.txt") + " - " + colors.green("Success: robots.txt has been created!"));
+
+	// Generate RSS feed
+	fs.writeFileSync(location + "/feed.rss", feed.rss2());
+	console.log(" - " + colors.blue("feed.rss") + " - " + colors.green("Success: feed.rss has been created!"));
+
+	// Generate Atom feed
+	fs.writeFileSync(location + "/feed.atom", feed.atom1());
+	console.log(" - " + colors.blue("feed.atom") + " - " + colors.green("Success: feed.atom has been created!"));
+
+	// Generate Json feed
+	fs.writeFileSync(location + "/feed.json", feed.json1());
+	console.log(" - " + colors.blue("feed.json") + " - " + colors.green("Success: feed.json has been created!"));
+
 }
 
 function actionDelete(){
