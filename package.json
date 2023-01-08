@@ -1,6 +1,6 @@
 {
 	"name": "bloggy-engine",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"description": "Simple blog engine",
 	"main": "bloggy-engine.js",
 	"scripts": {

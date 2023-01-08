@@ -15,7 +15,7 @@ let feed;
 
 if(args.includes("version")){
 	displayTitle();
-	console.log(colors.yellow("Version: 1.0.7"));
+	console.log(colors.yellow("Version: 1.0.8"));
 	console.log("");
 	process.exit();
 }
