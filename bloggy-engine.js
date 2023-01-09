@@ -333,6 +333,10 @@ function actionUpdate(){
 			return;
 		}
 
+		// SiteMap
+		let siteMapURL = "/creator/" + creator;
+		siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.9 });
+
 		let userFeed = createUserFeed(creator, userMetadata);
 
 		updateUserMain(creator, userMetadata);
