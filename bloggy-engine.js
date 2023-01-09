@@ -181,10 +181,8 @@ function actionList(){
 				return;
 			}
 
-			let date = userMetadata.posts[id].date;
-			date = date.split("-");
-
-			let staticPostLocation = location + "/creator/" + creator + "/" + id + ".html";
+			let language = (typeof(userMetadata.posts[id].language) === 'string') ? userMetadata.posts[id].language : userMetadata.language;
+			let staticPostLocation = location + "/creator/" + creator + "/" + language + "/" + id + ".html";
 
 			try{
 				fs.readFileSync(staticPostLocation, 'utf8');
@@ -294,7 +292,8 @@ function updateUserMain(username, userMetadata){
 	let counter = 0;
 	Object.keys(userMetadata.posts).reverse().forEach(key => {
 		if(counter >= 9) return;
-		let location = "/creator/" + username + "/" + key;
+		let language = (typeof(userMetadata.posts[key].language) === 'string') ? userMetadata.posts[key].language : userMetadata.language;
+		let location = "/creator/" + username + "/" + language + "/" + key;
 		if(!metadata.extensionHidden) location += ".html";
 		let avatar = "/images/avatars/" + username + ".png";
 		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : "/images/posts/" + username + "/" + userMetadata.posts[key].picture;
@@ -352,19 +351,23 @@ function actionUpdate(){
 				return;
 			}
 
+			let language = (typeof(userMetadata.posts[id].language) === 'string') ? userMetadata.posts[id].language : userMetadata.language;
+			if(!fs.existsSync(location + "/creator/" + creator + "/" + language)){
+				fs.mkdirSync(location + "/creator/" + creator + "/" + language, { recursive: true });
+			}
+
 			// SiteMap
-			let siteMapURL = "/creator/" + creator + "/" + id;
+			let siteMapURL = "/creator/" + creator + "/" + language + "/" + id;
 			if(!metadata.extensionHidden) siteMapURL += ".html";
 			siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.8 });
 
 			// Feed
-			let postURL = metadata.domain + "/creator/" + creator + "/" + id;
+			let postURL = metadata.domain + "/creator/" + creator + "/" + language + "/" + id;
 			if(!metadata.extensionHidden) postURL += ".html";
 
 			let authorLink = metadata.domain + "/creator/" + creator;
 			let picture = (userMetadata.posts[id].picture.startsWith('http')) ? userMetadata.posts[id].picture : metadata.domain + "/images/posts/" + creator + "/" + userMetadata.posts[id].picture;
 			let avatar = "/images/avatars/" + creator + ".png";
-			let language = (typeof(userMetadata.posts[id].language) === 'string') ? userMetadata.posts[id].language : userMetadata.language;
 			let category = (typeof(userMetadata.posts[id].category) === 'string') ? userMetadata.posts[id].category : userMetadata.category;
 			let userTitle = (typeof(userMetadata.title) === 'string') ? userMetadata.title : metadata.title;
 			let userDescription = (typeof(userMetadata.description) === 'string') ? userMetadata.description : metadata.description;
@@ -386,7 +389,7 @@ function actionUpdate(){
 				image: picture
 			});
 
-			let staticPostLocation = location + "/creator/" + creator;
+			let staticPostLocation = location + "/creator/" + creator + "/" + language;
 
 			try{
 				fs.readFileSync(staticPostLocation + "/" + id + ".html", 'utf8');
@@ -412,7 +415,7 @@ function actionUpdate(){
 			tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/creator/" + creator + "/feed.rss");
 			tempTemplate = tempTemplate.replaceAll("::metaTwitterHandle::", userTwitter.replace("https://twitter.com/", "@"));
 			tempTemplate = tempTemplate.replaceAll("::metaURL::", postURL);
-			let shareTwitter = userMetadata.posts[id].title + "%0A%0A" + metadata.domain + "/creator/" + creator + "/" + id;
+			let shareTwitter = userMetadata.posts[id].title + "%0A%0A" + metadata.domain + "/creator/" + creator + "/" + language + "/" + id;
 			if(!metadata.extensionHidden) shareTwitter += ".html";
 			tempTemplate = tempTemplate.replaceAll("::shareTwitter::", shareTwitter);
 
