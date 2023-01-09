@@ -106,7 +106,7 @@ try{
 
 function createUserFeed(username, userMetadata){
 	let link = metadata.domain + "/creator/" + username;
-	let image = metadata.domain + "/images/avatars/" + username + ".png";
+	let image = metadata.imagesLink + "/avatars/" + username + ".png";
 	let copyright = "© " + new Date().getFullYear() + " " + userMetadata.author + ", All rights reserved.";
 	let jsonFeed = metadata.domain + "/creator/" + username + "/feed.json";
 	let atomFeed = metadata.domain + "/creator/" + username + "/feed.atom";
@@ -259,7 +259,7 @@ function updateMain(){
 			return;
 		}
 
-		let avatar = "/images/avatars/" + creator + ".png";
+		let avatar = metadata.imagesLink + "/avatars/" + creator + ".png";
 		html += "<li><div class='space-y-6'><a href='/creator/" + creator + "'><img class='mx-auto h-40 w-40 shadow-lg rounded-full' src='" + avatar + "' alt='" + userMetadata.author + "' /></a><div class='space-y-2'><div class='space-y-1 text-lg font-medium leading-6'><a href='/creator/" + creator + "'><h3>" + userMetadata.author + "</h3></a></div></div></div></li>";
 	});
 	tempTemplate = tempTemplate.replaceAll("::creators::", html);
@@ -295,8 +295,8 @@ function updateUserMain(username, userMetadata){
 		let language = (typeof(userMetadata.posts[key].language) === 'string') ? userMetadata.posts[key].language : userMetadata.language;
 		let location = "/creator/" + username + "/" + language + "/" + key;
 		if(!metadata.extensionHidden) location += ".html";
-		let avatar = "/images/avatars/" + username + ".png";
-		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : "/images/posts/" + username + "/" + userMetadata.posts[key].picture;
+		let avatar = metadata.imagesLink + "/avatars/" + username + ".png";
+		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : metadata.imagesLink + "/posts/" + username + "/" + userMetadata.posts[key].picture;
 		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' src='" + picture + "' alt='" + userMetadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/creator/" + username + "/?tag=" + userMetadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + userMetadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + userMetadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + userMetadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + username + "'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-10 w-10 rounded-full' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/creator/" + username + "' class='hover:underline'>" + userMetadata.author + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + userMetadata.posts[key].date + "'>" + userMetadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + userMetadata.posts[key].read + " min read</span></div></div></div></div></div>";
 		counter++;
 	});
@@ -366,8 +366,8 @@ function actionUpdate(){
 			if(!metadata.extensionHidden) postURL += ".html";
 
 			let authorLink = metadata.domain + "/creator/" + creator;
-			let picture = (userMetadata.posts[id].picture.startsWith('http')) ? userMetadata.posts[id].picture : metadata.domain + "/images/posts/" + creator + "/" + userMetadata.posts[id].picture;
-			let avatar = "/images/avatars/" + creator + ".png";
+			let picture = (userMetadata.posts[id].picture.startsWith('http')) ? userMetadata.posts[id].picture : metadata.imagesLink + "/posts/" + creator + "/" + userMetadata.posts[id].picture;
+			let avatar = metadata.imagesLink + "/avatars/" + creator + ".png";
 			let category = (typeof(userMetadata.posts[id].category) === 'string') ? userMetadata.posts[id].category : userMetadata.category;
 			let userTitle = (typeof(userMetadata.title) === 'string') ? userMetadata.title : metadata.title;
 			let userDescription = (typeof(userMetadata.description) === 'string') ? userMetadata.description : metadata.description;
