@@ -406,6 +406,7 @@ function actionUpdate(){
 			tempTemplate = tempTemplate.replaceAll("::metaImage::", picture);
 			tempTemplate = tempTemplate.replaceAll("::title::", userTitle);
 			tempTemplate = tempTemplate.replaceAll("::description::", userDescription);
+			tempTemplate = tempTemplate.replaceAll("::username::", creator);
 			tempTemplate = tempTemplate.replaceAll("::previousLocation::", authorLocation);
 			tempTemplate = tempTemplate.replaceAll("::metaDomain::", metadata.domain.replace("https://", ""));
 			tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/creator/" + creator + "/feed.rss");
