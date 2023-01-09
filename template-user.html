@@ -20,19 +20,20 @@
 			</div>
 			<div class="relative mx-auto max-w-7xl">
 				<div class="text-center">
-					<a href="/"><h2 id="title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">::title::</h2></a>
+					<a href="::authorURL::"><h2 id="title" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">::title::</h2></a>
 					<p id="description" class="mx-auto mt-3 max-w-2xl text-xl text-gray-500 sm:mt-4">::description::</p>
 					<div id="social-media" class="mt-2 flex justify-center space-x-6 max-w-7xl mx-auto">::social::</div>
 				</div>
-				<div id="creators" class="mx-auto max-w-7xl py-5 px-5 text-center">
-					<ul role="list" class="mx-auto max-w-7xl space-y-8 sm:grid sm:grid-cols-3 sm:gap-8 sm:space-y-0 lg:grid-cols-4 xl:grid-cols-5">
-						::creators::
-					</ul>
+				<div class="mt-5 text-center">
+					<input type="text" name="search" id="search" class="mx-auto border text-gray-500 border-gray-200 bg-gray-50 w-full max-w-lg lg:max-w-none rounded-lg px-4 py-2 shadow-lg text-xl focus:outline-none" placeholder="Search" enterkeyhint="search" />
+				</div>
+				<div id="post" class="mx-auto mt-5 grid max-w-lg gap-5 lg:max-w-none lg:grid-cols-3">
+					::post::
 				</div>
 			</div>
 		</div>
     <script src="/js/default-functions.js"></script>
-		<script src="/metadata.js"></script>
-		<script src="/js/main.js"></script>
+		<script src="/creator/::username::/metadata.js"></script>
+		<script src="/js/user.js"></script>
   </body>
 </html>

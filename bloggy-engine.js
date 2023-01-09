@@ -9,9 +9,9 @@ let actions = ["create", "delete", "update", "list", "version"];
 let metadata;
 let templateMain = "";
 let templatePost = "";
-let filenames = [];
+let templateUser = "";
+let creators = [];
 let siteMapLinks = [];
-let feed;
 
 if(args.includes("version")){
 	displayTitle();
@@ -50,10 +50,10 @@ if(args.length < 4){
 let location = args[2];
 if(location[location.length-1] == '/') location = location.slice(0, -1);
 try{
-	metadata = require(location + "/content/metadata.js");
+	metadata = require(location + "/metadata.js");
 }catch(err){
 	displayTitle();
-	console.log(colors.red("Provided path / location '" + location + "' does not contain a 'content' folder with metadata.js file inside!\n"));
+	console.log(colors.red("Provided path / location '" + location + "' does not contain a metadata.js file!\n"));
 	process.exit();
 }
 
@@ -88,25 +88,34 @@ try{
 }
 
 try{
-	filenames = fs.readdirSync(location + "/content");
+	templateUser = fs.readFileSync("template-user.html", 'utf8');
 }catch(err){
 	displayTitle();
-	console.log(colors.red("Something went wrong while reading 'content' directory!\n"));
+	console.log(colors.red("It seems that 'template-user.html' file is missing!\n"));
+	console.log(colors.red("Make sure 'template-user.html' file is located in the same folder as bloggy-engine executable.\n"));
 	process.exit();
 }
 
-function createFeed(){
-	let image = metadata.domain + "/images/logo.png";
-	let copyright = "© " + new Date().getFullYear() + " " + metadata.title + ", All rights reserved.";
-	let jsonFeed = metadata.domain + "/feed.json";
-	let atomFeed = metadata.domain + "/feed.atom";
-	let authorLink = (typeof(metadata.website) === 'string') ? metadata.website : metadata.domain;
-	feed = new Feed({
-		title: metadata.title,
-		description: metadata.description,
-		id: metadata.domain,
-		link: metadata.domain,
-		language: metadata.language,
+try{
+	creators = fs.readdirSync(location + "/creator");
+}catch(err){
+	displayTitle();
+	console.log(colors.red("Something went wrong while reading 'creator' directory!\n"));
+	process.exit();
+}
+
+function createUserFeed(username, userMetadata){
+	let link = metadata.domain + "/creator/" + username;
+	let image = metadata.domain + "/images/avatars/" + username + ".png";
+	let copyright = "© " + new Date().getFullYear() + " " + userMetadata.author + ", All rights reserved.";
+	let jsonFeed = metadata.domain + "/creator/" + username + "/feed.json";
+	let atomFeed = metadata.domain + "/creator/" + username + "/feed.atom";
+	let userFeed = new Feed({
+		title: userMetadata.title,
+		description: userMetadata.description,
+		id: link,
+		link: link,
+		language: userMetadata.language,
 		image: image,
 		favicon: image,
 		copyright: copyright,
@@ -115,57 +124,89 @@ function createFeed(){
 			atom: atomFeed
 		},
 		author: {
-			name: metadata.author,
-			email: metadata.email,
-			link: authorLink
+			name: userMetadata.author,
+			email: userMetadata.email,
+			link: link
 		}
 	});
 
-	feed.addCategory(metadata.category);
+	userFeed.addCategory(userMetadata.category);
+	return userFeed;
 }
 
 function actionList(){
 	displayTitle();
-	console.log(colors.yellow("List will display every .md file located in 'contant' directory."));
+	console.log(colors.yellow("List will display every markdown (.md) file located in 'creator' directory."));
 	console.log(colors.yellow("Each .md file needs to have a metadata provided in metadata.js file."));
 	console.log(colors.yellow("If " + colors.red("metadata") + " is shown in " + colors.red("red") +", then it needs to be created with 'create' command."));
 	console.log(colors.yellow("If " + colors.green("metadata") + " is shown in " + colors.green("green") +", then post can be auto created with 'update' command."));
 	console.log(colors.yellow("When " + colors.green("live") + " is colored " + colors.green("green") +", then we know this post is live / online / has already been created.\n"));
-	console.log("List of posts:")
 	let totalfiles = 0;
 	let totallive = 0;
-	filenames.forEach(file => {
-		if(!file.includes(".md")) return;
-		totalfiles++;
+	creators.forEach(creator => {
+		let creatorfiles = 0;
+		let creatorlive = 0;
 
-		let id = file.replaceAll(".md", "");
-		let text = " - " + file + " - ";
-		let active = Object.keys(metadata.posts).includes(id);
-		text += (active) ? colors.green("metadata") : colors.red("metadata");
-		let staticPost = false;
+		console.log(colors.blue(creator) + ":");
 
-		if(!active){
-			console.log(text);
+		let userMetadata;
+		try{
+			userMetadata = require(location + "/creator/" + creator + "/metadata.js");
+		}catch(err){
+			console.log(console.red(" '" + location + "/creator/" + creator + "/metadata.js" + "' file is missing!"));
 			return;
 		}
 
-		let date = metadata.posts[id].date;
-		date = date.split("-");
-
-		let staticPostLocation = location + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id + ".html";
-
+		let files = [];
 		try{
-			fs.readFileSync(staticPostLocation, 'utf8');
-			staticPost = true;
-			totallive++;
+			files = fs.readdirSync(location + "/creator/" + creator + "/markdown");
 		}catch(err){
-			staticPost = false;
+			console.log(console.red(" '" + location + "/creator/" + creator + "/markdown"  + "' directory is missing!"));
+			return;
 		}
 
-		text += " - ";
-		text += (staticPost) ? colors.green("live") : colors.red("live");
+		files.forEach(file => {
+			if(!file.includes(".md")) return;
+			totalfiles++;
+			creatorfiles++;
 
-		console.log(text);
+			let id = file.replaceAll(".md", "");
+			let text = " - " + file + " - ";
+			let active = Object.keys(userMetadata.posts).includes(id);
+			text += (active) ? colors.green("metadata") : colors.red("metadata");
+			let staticPost = false;
+
+			if(!active){
+				console.log(text);
+				return;
+			}
+
+			let date = userMetadata.posts[id].date;
+			date = date.split("-");
+
+			let staticPostLocation = location + "/creator/" + creator + "/" + id + ".html";
+
+			try{
+				fs.readFileSync(staticPostLocation, 'utf8');
+				staticPost = true;
+				totallive++;
+				creatorlive++;
+			}catch(err){
+				staticPost = false;
+			}
+
+			text += " - ";
+			text += (staticPost) ? colors.green("live") : colors.red("live");
+
+			console.log(text);
+		});
+
+		if(creatorfiles != creatorlive){
+			console.log(colors.yellow(" - Not all posts from " + creator + " are live!"));
+		}
+
+		console.log("");
+
 	});
 
 	// Stats
@@ -210,149 +251,216 @@ function updateMain(){
 	tempTemplate = tempTemplate.replaceAll("::social::", social);
 
 	let html = "";
+	creators.forEach(creator => {
+
+		let userMetadata;
+		try{
+			userMetadata = require(location + "/creator/" + creator + "/metadata.js");
+		}catch(err){
+			console.log(console.red(" - '" + location + "/creator/" + creator + "/metadata.js" + "' file is missing!"));
+			return;
+		}
+
+		let avatar = "/images/avatars/" + creator + ".png";
+		html += "<li><div class='space-y-6'><a href='/creator/" + creator + "'><img class='mx-auto h-40 w-40 shadow-lg rounded-full' src='" + avatar + "' alt='" + userMetadata.author + "' /></a><div class='space-y-2'><div class='space-y-1 text-lg font-medium leading-6'><a href='/creator/" + creator + "'><h3>" + userMetadata.author + "</h3></a></div></div></div></li>";
+	});
+	tempTemplate = tempTemplate.replaceAll("::creators::", html);
+
+	fs.writeFileSync(location + "/index.html", tempTemplate);
+	console.log(" - index.html - " + colors.green("Success: Main page has been updated!"));
+}
+
+function updateUserMain(username, userMetadata){
+	let tempTemplate = templateUser;
+	tempTemplate = tempTemplate.replaceAll("::metatitle::", userMetadata.title);
+	tempTemplate = tempTemplate.replaceAll("::metaDescription::", userMetadata.description);
+	tempTemplate = tempTemplate.replaceAll("::title::", userMetadata.title);
+	tempTemplate = tempTemplate.replaceAll("::description::", userMetadata.description);
+	tempTemplate = tempTemplate.replaceAll("::username::", username);
+	tempTemplate = tempTemplate.replaceAll("::authorURL::", "/creator/" + username);
+	tempTemplate = tempTemplate.replaceAll("::language::", userMetadata.language);
+	tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/creator/" + username + "/feed.rss");
+	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain);
+	tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
+
+	let social = "";
+	if(typeof(userMetadata.website) === 'string') social += "<a href='" + userMetadata.website + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Website</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M19.5 7a8.998 8.998 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4'></path><path d='M11.5 3a16.989 16.989 0 0 0 -1.826 4'></path><path d='M12.5 3a16.989 16.989 0 0 1 1.828 4.004'></path><path d='M19.5 17a8.998 8.998 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4'></path><path d='M11.5 21a16.989 16.989 0 0 1 -1.826 -4'></path><path d='M12.5 21a16.989 16.989 0 0 0 1.828 -4.004'></path><path d='M2 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M17 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M9.5 10l1 4l1.5 -4l1.5 4l1 -4'></path></svg></a>";
+	if(typeof(userMetadata.discord) === 'string') social += "<a href='" + userMetadata.discord + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Discord</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><circle cx='9' cy='12' r='1'></circle><circle cx='15' cy='12' r='1'></circle><path d='M7.5 7.5c3.5 -1 5.5 -1 9 0'></path><path d='M7 16.5c3.5 1 6.5 1 10 0'></path><path d='M15.5 17c0 1 1.5 3 2 3c1.5 0 2.833 -1.667 3.5 -3c.667 -1.667 .5 -5.833 -1.5 -11.5c-1.457 -1.015 -3 -1.34 -4.5 -1.5l-1 2.5'></path><path d='M8.5 17c0 1 -1.356 3 -1.832 3c-1.429 0 -2.698 -1.667 -3.333 -3c-.635 -1.667 -.476 -5.833 1.428 -11.5c1.388 -1.015 2.782 -1.34 4.237 -1.5l1 2.5'></path></svg></a>";
+	if(typeof(userMetadata.twitter) === 'string') social += "<a href='" + userMetadata.twitter + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Twitter</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M22 4.01c-1 .49 -1.98 .689 -3 .99c-1.121 -1.265 -2.783 -1.335 -4.38 -.737s-2.643 2.06 -2.62 3.737v1c-3.245 .083 -6.135 -1.395 -8 -4c0 0 -4.182 7.433 4 11c-1.872 1.247 -3.739 2.088 -6 2c3.308 1.803 6.913 2.423 10.034 1.517c3.58 -1.04 6.522 -3.723 7.651 -7.742a13.84 13.84 0 0 0 .497 -3.753c-.002 -.249 1.51 -2.772 1.818 -4.013z'></path></svg></a>";
+	if(typeof(userMetadata.github) === 'string') social += "<a href='" + userMetadata.github + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Github</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5'></path></svg></a>";
+	tempTemplate = tempTemplate.replaceAll("::social::", social);
+
+	let html = "";
 	let counter = 0;
-	Object.keys(metadata.posts).reverse().forEach(key => {
+	Object.keys(userMetadata.posts).reverse().forEach(key => {
 		if(counter >= 9) return;
-		let date = metadata.posts[key].date.split("-");
-		let location = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + key;
+		let location = "/creator/" + username + "/" + key;
 		if(!metadata.extensionHidden) location += ".html";
-		let authorUsername = metadata.posts[key].author;
-		let avatar = "/images/avatars/" + authorUsername + ".png";
-		let picture = (metadata.posts[key].picture.startsWith('http')) ? metadata.posts[key].picture : "/images/posts/" + authorUsername + "/" + metadata.posts[key].picture;
-		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' src='" + picture + "' alt='" + metadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/?tag=" + metadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + metadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + metadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + metadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/?author=" + authorUsername + "'><span class='sr-only'>" + metadata.authors[authorUsername].name + "</span><img class='h-10 w-10 rounded-full' src='" + avatar + "' alt='" + metadata.authors[authorUsername].name + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/?author=" + authorUsername + "' class='hover:underline'>" + metadata.authors[authorUsername].name + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + metadata.posts[key].date + "'>" + metadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + metadata.posts[key].read + " min read</span></div></div></div></div></div>";
+		let avatar = "/images/avatars/" + username + ".png";
+		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : "/images/posts/" + username + "/" + userMetadata.posts[key].picture;
+		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' src='" + picture + "' alt='" + userMetadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/creator/" + username + "/?tag=" + userMetadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + userMetadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + userMetadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + userMetadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + username + "'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-10 w-10 rounded-full' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/creator/" + username + "' class='hover:underline'>" + userMetadata.author + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + userMetadata.posts[key].date + "'>" + userMetadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + userMetadata.posts[key].read + " min read</span></div></div></div></div></div>";
 		counter++;
 	});
 	tempTemplate = tempTemplate.replaceAll("::post::", html);
 
-	fs.writeFileSync(location + "/index.html", tempTemplate);
-	console.log(" - index.html - " + colors.green("Success: Main page has been updated!"));
+	fs.writeFileSync(location + "/creator/" + username + "/index.html", tempTemplate);
+	console.log(" - " + colors.blue("index.html") + " - " + colors.green("Success: User page has been updated!"));
 }
 
 function actionUpdate(){
 	displayTitle();
 	updateMain();
 
-	createFeed();
 	siteMapLinks.push({ url: metadata.domain, changefreq: 'daily', priority: 1 });
 
-	filenames.forEach(file => {
-		if(!file.includes(".md")) return;
+	creators.forEach(creator => {
 
-		let id = file.replaceAll(".md", "");
+		console.log("\n" + colors.blue(creator) + ":");
 
-		let active = Object.keys(metadata.posts).includes(id);
-		if(!active){
-			console.log(" - " + file + " - " + colors.yellow("Skipped: Doesn't contain metadata!"));
+		let userMetadata;
+		try{
+			userMetadata = require(location + "/creator/" + creator + "/metadata.js");
+		}catch(err){
+			console.log(console.red(" - '" + location + "/creator/" + creator + "/metadata.js" + "' file is missing!"));
 			return;
 		}
 
-		let date = metadata.posts[id].date;
-		date = date.split("-");
+		let files = [];
+		try{
+			files = fs.readdirSync(location + "/creator/" + creator + "/markdown");
+		}catch(err){
+			console.log(console.red(" - '" + location + "/creator/" + creator + "/markdown"  + "' directory is missing!"));
+			return;
+		}
 
-		// SiteMap
-		let siteMapURL = "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
-		if(!metadata.extensionHidden) siteMapURL += ".html";
-		siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.8 });
+		let userFeed = createUserFeed(creator, userMetadata);
 
-		// Feed
-		let postURL = metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
-		if(!metadata.extensionHidden) postURL += ".html";
+		updateUserMain(creator, userMetadata);
 
-		let authorUsername = metadata.posts[id].author;
-		let authorLink = metadata.domain + "/?author=" + authorUsername;
-		let picture = (metadata.posts[id].picture.startsWith('http')) ? metadata.posts[id].picture : metadata.domain + "/images/posts/" + authorUsername + "/" + metadata.posts[id].picture;
-		let avatar = "/images/avatars/" + authorUsername + ".png";
-		let language = (typeof(metadata.posts[id].language) === 'string') ? metadata.posts[id].language : metadata.language;
-		let category = (typeof(metadata.posts[id].category) === 'string') ? metadata.posts[id].category : metadata.category;
-		let userTitle = (typeof(metadata.authors[authorUsername].title) === 'string') ? metadata.authors[authorUsername].title : metadata.title;
-		let userDescription = (typeof(metadata.authors[authorUsername].description) === 'string') ? metadata.authors[authorUsername].description : metadata.description;
-		let userEmail = (typeof(metadata.authors[authorUsername].email) === 'string') ? metadata.authors[authorUsername].email : metadata.email;
-		let userTwitter = (typeof(metadata.authors[authorUsername].twitter) === 'string') ? metadata.authors[authorUsername].twitter : metadata.twitter;
-		let authorLocation = "/?author=" + authorUsername;
+		files.forEach(file => {
+			if(!file.includes(".md")) return;
 
-		feed.addItem({
-			title: metadata.posts[id].title,
-			id: postURL,
-			link: postURL,
-			description: metadata.posts[id].description,
-			author: [{
-				name: metadata.authors[authorUsername].name,
-				email: userEmail,
-				link: authorLink
-			}],
-			date: new Date(metadata.posts[id].date),
-			image: picture
+			let id = file.replaceAll(".md", "");
+
+			let active = Object.keys(userMetadata.posts).includes(id);
+			if(!active){
+				console.log(" - " + file + " - " + colors.yellow("Skipped: Doesn't contain metadata!"));
+				return;
+			}
+
+			// SiteMap
+			let siteMapURL = "/creator/" + creator + "/" + id;
+			if(!metadata.extensionHidden) siteMapURL += ".html";
+			siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.8 });
+
+			// Feed
+			let postURL = metadata.domain + "/creator/" + creator + "/" + id;
+			if(!metadata.extensionHidden) postURL += ".html";
+
+			let authorLink = metadata.domain + "/creator/" + creator;
+			let picture = (userMetadata.posts[id].picture.startsWith('http')) ? userMetadata.posts[id].picture : metadata.domain + "/images/posts/" + creator + "/" + userMetadata.posts[id].picture;
+			let avatar = "/images/avatars/" + creator + ".png";
+			let language = (typeof(userMetadata.posts[id].language) === 'string') ? userMetadata.posts[id].language : userMetadata.language;
+			let category = (typeof(userMetadata.posts[id].category) === 'string') ? userMetadata.posts[id].category : userMetadata.category;
+			let userTitle = (typeof(userMetadata.title) === 'string') ? userMetadata.title : metadata.title;
+			let userDescription = (typeof(userMetadata.description) === 'string') ? userMetadata.description : metadata.description;
+			let userEmail = (typeof(userMetadata.email) === 'string') ? userMetadata.email : metadata.email;
+			let userTwitter = (typeof(userMetadata.twitter) === 'string') ? userMetadata.twitter : metadata.twitter;
+			let authorLocation = "/creator/" + creator;
+
+			userFeed.addItem({
+				title: userMetadata.posts[id].title,
+				id: postURL,
+				link: postURL,
+				description: userMetadata.posts[id].description,
+				author: [{
+					name: userMetadata.author,
+					email: userEmail,
+					link: authorLink
+				}],
+				date: new Date(userMetadata.posts[id].date),
+				image: picture
+			});
+
+			let staticPostLocation = location + "/creator/" + creator;
+
+			try{
+				fs.readFileSync(staticPostLocation + "/" + id + ".html", 'utf8');
+				console.log(" - " + file + " - " + colors.green("Skipped: Post is already live!"));
+				return;
+			}catch{}
+
+			let tempTemplate = templatePost;
+			tempTemplate = tempTemplate.replaceAll("::metatitle::", userMetadata.posts[id].title);
+			tempTemplate = tempTemplate.replaceAll("::metaDescription::", userMetadata.posts[id].description);
+			tempTemplate = tempTemplate.replaceAll("::language::", language);
+			tempTemplate = tempTemplate.replaceAll("::metaAuthor::", userMetadata.author);
+			tempTemplate = tempTemplate.replaceAll("::metaTag::", userMetadata.posts[id].tag);
+			tempTemplate = tempTemplate.replaceAll("::metaCategory::", category);
+			tempTemplate = tempTemplate.replaceAll("::metaPublishedTime::", new Date(userMetadata.posts[id].date).toISOString());
+			tempTemplate = tempTemplate.replaceAll("::metaModifiedTime::", new Date().toISOString());
+			tempTemplate = tempTemplate.replaceAll("::metaImage::", picture);
+			tempTemplate = tempTemplate.replaceAll("::title::", userTitle);
+			tempTemplate = tempTemplate.replaceAll("::description::", userDescription);
+			tempTemplate = tempTemplate.replaceAll("::previousLocation::", authorLocation);
+			tempTemplate = tempTemplate.replaceAll("::metaDomain::", metadata.domain.replace("https://", ""));
+			tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/creator/" + creator + "/feed.rss");
+			tempTemplate = tempTemplate.replaceAll("::metaTwitterHandle::", userTwitter.replace("https://twitter.com/", "@"));
+			tempTemplate = tempTemplate.replaceAll("::metaURL::", postURL);
+			let shareTwitter = userMetadata.posts[id].title + "%0A%0A" + metadata.domain + "/creator/" + creator + "/" + id;
+			if(!metadata.extensionHidden) shareTwitter += ".html";
+			tempTemplate = tempTemplate.replaceAll("::shareTwitter::", shareTwitter);
+
+			tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
+
+			let social = "";
+			if(typeof(userMetadata.website) === 'string') social += "<a href='" + userMetadata.website + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Website</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M19.5 7a8.998 8.998 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4'></path><path d='M11.5 3a16.989 16.989 0 0 0 -1.826 4'></path><path d='M12.5 3a16.989 16.989 0 0 1 1.828 4.004'></path><path d='M19.5 17a8.998 8.998 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4'></path><path d='M11.5 21a16.989 16.989 0 0 1 -1.826 -4'></path><path d='M12.5 21a16.989 16.989 0 0 0 1.828 -4.004'></path><path d='M2 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M17 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M9.5 10l1 4l1.5 -4l1.5 4l1 -4'></path></svg></a>";
+			if(typeof(userMetadata.discord) === 'string') social += "<a href='" + userMetadata.discord + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Discord</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><circle cx='9' cy='12' r='1'></circle><circle cx='15' cy='12' r='1'></circle><path d='M7.5 7.5c3.5 -1 5.5 -1 9 0'></path><path d='M7 16.5c3.5 1 6.5 1 10 0'></path><path d='M15.5 17c0 1 1.5 3 2 3c1.5 0 2.833 -1.667 3.5 -3c.667 -1.667 .5 -5.833 -1.5 -11.5c-1.457 -1.015 -3 -1.34 -4.5 -1.5l-1 2.5'></path><path d='M8.5 17c0 1 -1.356 3 -1.832 3c-1.429 0 -2.698 -1.667 -3.333 -3c-.635 -1.667 -.476 -5.833 1.428 -11.5c1.388 -1.015 2.782 -1.34 4.237 -1.5l1 2.5'></path></svg></a>";
+			if(typeof(userMetadata.twitter) === 'string') social += "<a href='" + userMetadata.twitter + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Twitter</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M22 4.01c-1 .49 -1.98 .689 -3 .99c-1.121 -1.265 -2.783 -1.335 -4.38 -.737s-2.643 2.06 -2.62 3.737v1c-3.245 .083 -6.135 -1.395 -8 -4c0 0 -4.182 7.433 4 11c-1.872 1.247 -3.739 2.088 -6 2c3.308 1.803 6.913 2.423 10.034 1.517c3.58 -1.04 6.522 -3.723 7.651 -7.742a13.84 13.84 0 0 0 .497 -3.753c-.002 -.249 1.51 -2.772 1.818 -4.013z'></path></svg></a>";
+			if(typeof(userMetadata.github) === 'string') social += "<a href='" + userMetadata.github + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Github</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5'></path></svg></a>";
+			tempTemplate = tempTemplate.replaceAll("::social::", social);
+
+			try{
+				let mark = fs.readFileSync(location + "/creator/" + creator + "/markdown/" + id + ".md", 'utf8');
+				let readTime = Math.round(getWordCount(mark) / 200);
+
+				let html = "<h1 class='post-title'>" + userMetadata.posts[id].title + "</h1>";
+				html += "<div class='flex space-x-1 f16'><time datetime='" + userMetadata.posts[id].date + "'>" + userMetadata.posts[id].date + "</time><span aria-hidden='true'>&middot;</span><span>" + readTime + " min read</span></div>";
+				html += "<div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + creator + "'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-12 w-12 rounded-full' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='f16 font-medium'><a href='/creator/" + creator + "'>" + userMetadata.author + "</a></p></div></div>";
+
+				let md = new MarkdownIt();
+				// Adds target="_blank" to the links.
+				var defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, env, self) {
+					return self.renderToken(tokens, idx, options);
+				};
+				md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+					tokens[idx].attrPush(['target', '_blank']);
+					return defaultRender(tokens, idx, options, env, self);
+				};
+
+				html += md.render(mark);
+				tempTemplate = tempTemplate.replaceAll("::post::", html);
+			}catch(err){
+				console.log(" - " + file + " - " + colors.red("Error: While trying to open '" + id + ".md'!"));
+				return;
+			}
+
+			fs.writeFileSync(staticPostLocation + "/" + id + ".html", tempTemplate);
+			console.log(" - " + file + " - " + colors.green("Success: Post has been created!"));
 		});
 
-		let staticPostLocation = location + "/" + date[0] + "/" + date[1] + "/" + date[2];
+		// Generate RSS feed
+		fs.writeFileSync(location + "/creator/" + creator + "/feed.rss", userFeed.rss2());
+		console.log(" - " + colors.blue("feed.rss") + " - " + colors.green("Success: feed.rss has been created!"));
 
-		try{
-			fs.readFileSync(staticPostLocation + "/" + id + ".html", 'utf8');
-			console.log(" - " + file + " - " + colors.green("Skipped: Post is already live!"));
-			return;
-		}catch{}
+		// Generate Atom feed
+		fs.writeFileSync(location + "/creator/" + creator + "/feed.atom", userFeed.atom1());
+		console.log(" - " + colors.blue("feed.atom") + " - " + colors.green("Success: feed.atom has been created!"));
 
-		if(!fs.existsSync(staticPostLocation)){
-			fs.mkdirSync(staticPostLocation, { recursive: true });
-		}
+		// Generate Json feed
+		fs.writeFileSync(location + "/creator/" + creator + "/feed.json", userFeed.json1());
+		console.log(" - " + colors.blue("feed.json") + " - " + colors.green("Success: feed.json has been created!"));
 
-		let tempTemplate = templatePost;
-		tempTemplate = tempTemplate.replaceAll("::metatitle::", metadata.posts[id].title);
-		tempTemplate = tempTemplate.replaceAll("::metaDescription::", metadata.posts[id].description);
-		tempTemplate = tempTemplate.replaceAll("::language::", language);
-		tempTemplate = tempTemplate.replaceAll("::metaAuthor::", metadata.authors[authorUsername].name);
-		tempTemplate = tempTemplate.replaceAll("::metaTag::", metadata.posts[id].tag);
-		tempTemplate = tempTemplate.replaceAll("::metaCategory::", category);
-		tempTemplate = tempTemplate.replaceAll("::metaPublishedTime::", new Date(metadata.posts[id].date).toISOString());
-		tempTemplate = tempTemplate.replaceAll("::metaModifiedTime::", new Date().toISOString());
-		tempTemplate = tempTemplate.replaceAll("::metaImage::", picture);
-		tempTemplate = tempTemplate.replaceAll("::title::", userTitle);
-		tempTemplate = tempTemplate.replaceAll("::description::", userDescription);
-		tempTemplate = tempTemplate.replaceAll("::previousLocation::", authorLocation);
-		tempTemplate = tempTemplate.replaceAll("::metaDomain::", metadata.domain.replace("https://", ""));
-		tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/feed.rss");
-		tempTemplate = tempTemplate.replaceAll("::metaTwitterHandle::", userTwitter.replace("https://twitter.com/", "@"));
-		tempTemplate = tempTemplate.replaceAll("::metaURL::", postURL);
-		let shareTwitter = metadata.posts[id].title + "%0A%0A" + metadata.domain + "/" + date[0] + "/" + date[1] + "/" + date[2] + "/" + id;
-		if(!metadata.extensionHidden) shareTwitter += ".html";
-		tempTemplate = tempTemplate.replaceAll("::shareTwitter::", shareTwitter);
-
-		tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
-
-		let social = "";
-		if(typeof(metadata.authors[authorUsername].website) === 'string') social += "<a href='" + metadata.authors[authorUsername].website + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Website</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M19.5 7a8.998 8.998 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4'></path><path d='M11.5 3a16.989 16.989 0 0 0 -1.826 4'></path><path d='M12.5 3a16.989 16.989 0 0 1 1.828 4.004'></path><path d='M19.5 17a8.998 8.998 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4'></path><path d='M11.5 21a16.989 16.989 0 0 1 -1.826 -4'></path><path d='M12.5 21a16.989 16.989 0 0 0 1.828 -4.004'></path><path d='M2 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M17 10l1 4l1.5 -4l1.5 4l1 -4'></path><path d='M9.5 10l1 4l1.5 -4l1.5 4l1 -4'></path></svg></a>";
-		if(typeof(metadata.authors[authorUsername].discord) === 'string') social += "<a href='" + metadata.authors[authorUsername].discord + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Discord</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><circle cx='9' cy='12' r='1'></circle><circle cx='15' cy='12' r='1'></circle><path d='M7.5 7.5c3.5 -1 5.5 -1 9 0'></path><path d='M7 16.5c3.5 1 6.5 1 10 0'></path><path d='M15.5 17c0 1 1.5 3 2 3c1.5 0 2.833 -1.667 3.5 -3c.667 -1.667 .5 -5.833 -1.5 -11.5c-1.457 -1.015 -3 -1.34 -4.5 -1.5l-1 2.5'></path><path d='M8.5 17c0 1 -1.356 3 -1.832 3c-1.429 0 -2.698 -1.667 -3.333 -3c-.635 -1.667 -.476 -5.833 1.428 -11.5c1.388 -1.015 2.782 -1.34 4.237 -1.5l1 2.5'></path></svg></a>";
-		if(typeof(metadata.authors[authorUsername].twitter) === 'string') social += "<a href='" + metadata.authors[authorUsername].twitter + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Twitter</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M22 4.01c-1 .49 -1.98 .689 -3 .99c-1.121 -1.265 -2.783 -1.335 -4.38 -.737s-2.643 2.06 -2.62 3.737v1c-3.245 .083 -6.135 -1.395 -8 -4c0 0 -4.182 7.433 4 11c-1.872 1.247 -3.739 2.088 -6 2c3.308 1.803 6.913 2.423 10.034 1.517c3.58 -1.04 6.522 -3.723 7.651 -7.742a13.84 13.84 0 0 0 .497 -3.753c-.002 -.249 1.51 -2.772 1.818 -4.013z'></path></svg></a>";
-		if(typeof(metadata.authors[authorUsername].github) === 'string') social += "<a href='" + metadata.authors[authorUsername].github + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Github</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5'></path></svg></a>";
-		tempTemplate = tempTemplate.replaceAll("::social::", social);
-
-		try{
-			let mark = fs.readFileSync(location + "/content/" + id + ".md", 'utf8');
-			let readTime = Math.round(getWordCount(mark) / 200);
-
-			let html = "<h1 class='post-title'>" + metadata.posts[id].title + "</h1>";
-			html += "<div class='flex space-x-1 f16'><time datetime='" + metadata.posts[id].date + "'>" + metadata.posts[id].date + "</time><span aria-hidden='true'>&middot;</span><span>" + readTime + " min read</span></div>";
-			html += "<div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/?author=" + authorUsername + "'><span class='sr-only'>" + metadata.authors[authorUsername].name + "</span><img class='h-12 w-12 rounded-full' src='" + avatar + "' alt='" + metadata.authors[authorUsername].name + "'></a></div><div class='ml-3'><p class='f16 font-medium'><a href='/?author=" + authorUsername + "'>" + metadata.authors[authorUsername].name + "</a></p></div></div>";
-
-			let md = new MarkdownIt();
-			// Adds target="_blank" to the links.
-			var defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, env, self) {
-				return self.renderToken(tokens, idx, options);
-			};
-			md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
-				tokens[idx].attrPush(['target', '_blank']);
-				return defaultRender(tokens, idx, options, env, self);
-			};
-
-			html += md.render(mark);
-			tempTemplate = tempTemplate.replaceAll("::post::", html);
-		}catch(err){
-			console.log(" - " + file + " - " + colors.red("Error: While trying to open '" + id + ".md'!"));
-			return;
-		}
-
-		fs.writeFileSync(staticPostLocation + "/" + id + ".html", tempTemplate);
-		console.log(" - " + file + " - " + colors.green("Success: Post has been created!"));
 	});
 
 	// Generate sitemap.xml
@@ -366,19 +474,6 @@ function actionUpdate(){
 	let robots = "User-agent: *\nDisallow: /cgi-bin/\nSitemap: " + metadata.domain + "/sitemap.xml";
 	fs.writeFileSync(location + "/robots.txt", robots);
 	console.log(" - " + colors.blue("robots.txt") + " - " + colors.green("Success: robots.txt has been created!"));
-
-	// Generate RSS feed
-	fs.writeFileSync(location + "/feed.rss", feed.rss2());
-	console.log(" - " + colors.blue("feed.rss") + " - " + colors.green("Success: feed.rss has been created!"));
-
-	// Generate Atom feed
-	fs.writeFileSync(location + "/feed.atom", feed.atom1());
-	console.log(" - " + colors.blue("feed.atom") + " - " + colors.green("Success: feed.atom has been created!"));
-
-	// Generate Json feed
-	fs.writeFileSync(location + "/feed.json", feed.json1());
-	console.log(" - " + colors.blue("feed.json") + " - " + colors.green("Success: feed.json has been created!"));
-
 }
 
 function actionDelete(){
