@@ -237,7 +237,6 @@ function updateMain(){
 	tempTemplate = tempTemplate.replaceAll("::title::", metadata.title);
 	tempTemplate = tempTemplate.replaceAll("::description::", metadata.description);
 	tempTemplate = tempTemplate.replaceAll("::language::", metadata.language);
-	tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/feed.rss");
 	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain);
 	tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
 
@@ -274,6 +273,7 @@ function updateUserMain(username, userMetadata){
 	tempTemplate = tempTemplate.replaceAll("::metaDescription::", userMetadata.description);
 	tempTemplate = tempTemplate.replaceAll("::title::", userMetadata.title);
 	tempTemplate = tempTemplate.replaceAll("::description::", userMetadata.description);
+	tempTemplate = tempTemplate.replaceAll("::icon::", metadata.imagesLink + "/avatars/" + username + ".png");
 	tempTemplate = tempTemplate.replaceAll("::username::", username);
 	tempTemplate = tempTemplate.replaceAll("::authorURL::", "/creator/" + username);
 	tempTemplate = tempTemplate.replaceAll("::language::", userMetadata.language);
@@ -409,6 +409,7 @@ function actionUpdate(){
 			tempTemplate = tempTemplate.replaceAll("::metaImage::", picture);
 			tempTemplate = tempTemplate.replaceAll("::title::", userTitle);
 			tempTemplate = tempTemplate.replaceAll("::description::", userDescription);
+			tempTemplate = tempTemplate.replaceAll("::icon::", metadata.imagesLink + "/avatars/" + creator + ".png");
 			tempTemplate = tempTemplate.replaceAll("::username::", creator);
 			tempTemplate = tempTemplate.replaceAll("::previousLocation::", authorLocation);
 			tempTemplate = tempTemplate.replaceAll("::metaDomain::", metadata.domain.replace("https://", ""));
