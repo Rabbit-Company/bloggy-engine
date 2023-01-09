@@ -15,7 +15,7 @@ let siteMapLinks = [];
 
 if(args.includes("version")){
 	displayTitle();
-	console.log(colors.yellow("Version: 1.0.8"));
+	console.log(colors.yellow("Version: 2.0.0"));
 	console.log("");
 	process.exit();
 }
