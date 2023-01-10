@@ -278,7 +278,7 @@ function updateUserMain(username, userMetadata){
 	tempTemplate = tempTemplate.replaceAll("::authorURL::", "/creator/" + username);
 	tempTemplate = tempTemplate.replaceAll("::language::", userMetadata.language);
 	tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/creator/" + username + "/feed.rss");
-	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain);
+	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain + "/creator/" + username);
 	tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
 
 	let social = "";
