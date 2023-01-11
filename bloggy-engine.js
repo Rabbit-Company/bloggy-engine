@@ -443,7 +443,8 @@ function actionUpdate(){
 
 			try{
 				let mark = fs.readFileSync(location + "/creator/" + creator + "/markdown/" + id + ".md", 'utf8');
-				let readTime = Math.round(getWordCount(mark) / 200);
+				let wordcount = getWordCount(mark);
+				let readTime = Math.round(wordcount / 200);
 
 				let html = "<h1 class='post-title'>" + userMetadata.posts[id].title + "</h1>";
 				html += "<div class='flex space-x-1 f16'><time datetime='" + userMetadata.posts[id].date + "'>" + userMetadata.posts[id].date + "</time><span aria-hidden='true'>&middot;</span><span>" + readTime + " min read</span></div>";
@@ -459,8 +460,40 @@ function actionUpdate(){
 					return defaultRender(tokens, idx, options, env, self);
 				};
 
-				html += md.render(mark);
+				let postHtml = md.render(mark);
+				html += postHtml;
 				tempTemplate = tempTemplate.replaceAll("::post::", html);
+
+				const jsondl = {
+					"@context": "http://schema.org",
+					"@type": "BlogPosting",
+					"headline": userMetadata.posts[id].title,
+					"description": userMetadata.posts[id].description,
+					"url": postURL,
+					"genre": category,
+					"articleSection": category,
+					"wordcount": wordcount,
+					"keywords": userMetadata.posts[id].keywords,
+					"image": [
+						picture,
+						avatar
+					],
+					"datePublished": userMetadata.posts[id].date,
+					"dateModified": new Date().toISOString(),
+					"articleBody": postHtml,
+					"publisher": {
+						"@type": "Organization",
+						"name": userMetadata.title,
+						"url": authorLink
+					},
+					"author": {
+						"@type": "Person",
+						"name": userMetadata.author,
+						"url": authorLink
+					},
+				};
+
+				tempTemplate = tempTemplate.replaceAll("::jsondl::", JSON.stringify(jsondl));
 			}catch(err){
 				console.log(" - " + file + " - " + colors.red("Error: While trying to open '" + id + ".md'!"));
 				return;
