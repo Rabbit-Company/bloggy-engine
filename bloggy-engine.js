@@ -105,7 +105,7 @@ try{
 }
 
 function createUserFeed(username, userMetadata){
-	let link = metadata.domain + "/creator/" + username;
+	let link = metadata.domain + "/creator/" + username + "/";
 	let image = metadata.imagesLink + "/avatars/" + username + ".png";
 	let copyright = "© " + new Date().getFullYear() + " " + userMetadata.author + ", All rights reserved.";
 	let jsonFeed = metadata.domain + "/creator/" + username + "/feed.json";
@@ -236,6 +236,7 @@ function updateMain(){
 	tempTemplate = tempTemplate.replaceAll("::metaDescription::", metadata.description);
 	tempTemplate = tempTemplate.replaceAll("::title::", metadata.title);
 	tempTemplate = tempTemplate.replaceAll("::description::", metadata.description);
+	tempTemplate = tempTemplate.replaceAll("::author::", metadata.author);
 	tempTemplate = tempTemplate.replaceAll("::language::", metadata.language);
 	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain);
 	tempTemplate = tempTemplate.replaceAll("::analytics::", metadata.analytics);
@@ -259,7 +260,7 @@ function updateMain(){
 		}
 
 		let avatar = metadata.imagesLink + "/avatars/" + creator + ".png";
-		html += "<li><div class='space-y-6'><a href='/creator/" + creator + "'><img class='mx-auto h-40 w-40 shadow-lg rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "' /></a><div class='space-y-2'><div class='space-y-1 text-lg font-medium leading-6'><a href='/creator/" + creator + "'><h2>" + userMetadata.author + "</h2></a></div></div></div></li>";
+		html += "<li><div class='space-y-6'><a href='/creator/" + creator + "/'><img class='mx-auto h-40 w-40 shadow-lg rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "' /></a><div class='space-y-2'><div class='space-y-1 text-lg font-medium leading-6'><a href='/creator/" + creator + "/'><h2>" + userMetadata.author + "</h2></a></div></div></div></li>";
 	});
 	tempTemplate = tempTemplate.replaceAll("::creators::", html);
 
@@ -273,9 +274,11 @@ function updateUserMain(username, userMetadata){
 	tempTemplate = tempTemplate.replaceAll("::metaDescription::", userMetadata.description);
 	tempTemplate = tempTemplate.replaceAll("::title::", userMetadata.title);
 	tempTemplate = tempTemplate.replaceAll("::description::", userMetadata.description);
+	tempTemplate = tempTemplate.replaceAll("::siteName::", metadata.title);
 	tempTemplate = tempTemplate.replaceAll("::icon::", metadata.imagesLink + "/avatars/" + username + ".png");
 	tempTemplate = tempTemplate.replaceAll("::username::", username);
-	tempTemplate = tempTemplate.replaceAll("::authorURL::", "/creator/" + username);
+	tempTemplate = tempTemplate.replaceAll("::author::", userMetadata.author);
+	tempTemplate = tempTemplate.replaceAll("::authorURL::", "/creator/" + username + "/");
 	tempTemplate = tempTemplate.replaceAll("::language::", userMetadata.language);
 	tempTemplate = tempTemplate.replaceAll("::metaRSS::", metadata.domain + "/creator/" + username + "/feed.rss");
 	tempTemplate = tempTemplate.replaceAll("::metaURL::", metadata.domain + "/creator/" + username + "/");
@@ -297,7 +300,7 @@ function updateUserMain(username, userMetadata){
 		if(!metadata.extensionHidden) location += ".html";
 		let avatar = metadata.imagesLink + "/avatars/" + username + ".png";
 		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : metadata.imagesLink + "/posts/" + username + "/" + userMetadata.posts[key].picture;
-		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' loading='lazy' src='" + picture + "' alt='" + userMetadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/creator/" + username + "/?tag=" + userMetadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + userMetadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + userMetadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + userMetadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + username + "'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-10 w-10 rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/creator/" + username + "' class='hover:underline'>" + userMetadata.author + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + userMetadata.posts[key].date + "'>" + userMetadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + userMetadata.posts[key].read + " min read</span></div></div></div></div></div>";
+		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' loading='lazy' src='" + picture + "' alt='" + userMetadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/creator/" + username + "/?tag=" + userMetadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + userMetadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + userMetadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + userMetadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + username + "/'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-10 w-10 rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/creator/" + username + "/' class='hover:underline'>" + userMetadata.author + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + userMetadata.posts[key].date + "'>" + userMetadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + userMetadata.posts[key].read + " min read</span></div></div></div></div></div>";
 		counter++;
 	});
 	tempTemplate = tempTemplate.replaceAll("::post::", html);
@@ -333,7 +336,7 @@ function actionUpdate(){
 		}
 
 		// SiteMap
-		let siteMapURL = "/creator/" + creator;
+		let siteMapURL = "/creator/" + creator + "/";
 		siteMapLinks.push({ url: siteMapURL, changefreq: 'daily', priority: 0.9 });
 
 		let userFeed = createUserFeed(creator, userMetadata);
@@ -365,7 +368,7 @@ function actionUpdate(){
 			let postURL = metadata.domain + "/creator/" + creator + "/" + language + "/" + id;
 			if(!metadata.extensionHidden) postURL += ".html";
 
-			let authorLink = metadata.domain + "/creator/" + creator;
+			let authorLink = metadata.domain + "/creator/" + creator + "/";
 			let picture = (userMetadata.posts[id].picture.startsWith('http')) ? userMetadata.posts[id].picture : metadata.imagesLink + "/posts/" + creator + "/" + userMetadata.posts[id].picture;
 			let avatar = metadata.imagesLink + "/avatars/" + creator + ".png";
 			let category = (typeof(userMetadata.posts[id].category) === 'string') ? userMetadata.posts[id].category : userMetadata.category;
@@ -373,7 +376,7 @@ function actionUpdate(){
 			let userDescription = (typeof(userMetadata.description) === 'string') ? userMetadata.description : metadata.description;
 			let userEmail = (typeof(userMetadata.email) === 'string') ? userMetadata.email : metadata.email;
 			let userTwitter = (typeof(userMetadata.twitter) === 'string') ? userMetadata.twitter : metadata.twitter;
-			let authorLocation = "/creator/" + creator;
+			let authorLocation = "/creator/" + creator + "/";
 
 			userFeed.addItem({
 				title: userMetadata.posts[id].title,
@@ -409,6 +412,7 @@ function actionUpdate(){
 			tempTemplate = tempTemplate.replaceAll("::metaImage::", picture);
 			tempTemplate = tempTemplate.replaceAll("::title::", userTitle);
 			tempTemplate = tempTemplate.replaceAll("::description::", userDescription);
+			tempTemplate = tempTemplate.replaceAll("::siteName::", metadata.title);
 			tempTemplate = tempTemplate.replaceAll("::icon::", metadata.imagesLink + "/avatars/" + creator + ".png");
 			tempTemplate = tempTemplate.replaceAll("::username::", creator);
 			tempTemplate = tempTemplate.replaceAll("::previousLocation::", authorLocation);
@@ -443,7 +447,7 @@ function actionUpdate(){
 
 				let html = "<h1 class='post-title'>" + userMetadata.posts[id].title + "</h1>";
 				html += "<div class='flex space-x-1 f16'><time datetime='" + userMetadata.posts[id].date + "'>" + userMetadata.posts[id].date + "</time><span aria-hidden='true'>&middot;</span><span>" + readTime + " min read</span></div>";
-				html += "<div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + creator + "'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-12 w-12 rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='f16 font-medium'><a href='/creator/" + creator + "'>" + userMetadata.author + "</a></p></div></div>";
+				html += "<div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + creator + "/'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-12 w-12 rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='f16 font-medium'><a href='/creator/" + creator + "/'>" + userMetadata.author + "</a></p></div></div>";
 
 				let md = new MarkdownIt();
 				// Adds target="_blank" to the links.
