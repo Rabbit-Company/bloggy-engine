@@ -313,7 +313,8 @@ function updateUserMain(username, userMetadata){
 		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : metadata.imagesLink + "/posts/" + username + "/" + userMetadata.posts[key].picture;
 		let url = metadata.domain + location;
 		let authorLink = metadata.domain + "/creator/" + username + "/";
-		let category = (typeof(userMetadata.posts[key].category) === 'string') ? userMetadata.posts[key].category : userMetadata.catego
+		let category = (typeof(userMetadata.posts[key].category) === 'string') ? userMetadata.posts[key].category : userMetadata.category;
+		let website = (typeof(userMetadata.website) === 'string') ? userMetadata.website : authorLink;
 
 		jsondl.push({
 			"@context": "http://schema.org",
@@ -338,7 +339,7 @@ function updateUserMain(username, userMetadata){
 			"author": {
 				"@type": "Person",
 				"name": userMetadata.author,
-				"url": authorLink
+				"url": website
 			},
 		});
 
@@ -417,6 +418,7 @@ function actionUpdate(){
 			let category = (typeof(userMetadata.posts[id].category) === 'string') ? userMetadata.posts[id].category : userMetadata.category;
 			let userTitle = (typeof(userMetadata.title) === 'string') ? userMetadata.title : metadata.title;
 			let userDescription = (typeof(userMetadata.description) === 'string') ? userMetadata.description : metadata.description;
+			let userWebsite = (typeof(userMetadata.website) === 'string') ? userMetadata.website : authorLink;
 			let userEmail = (typeof(userMetadata.email) === 'string') ? userMetadata.email : metadata.email;
 			let userTwitter = (typeof(userMetadata.twitter) === 'string') ? userMetadata.twitter : metadata.twitter;
 			let authorLocation = "/creator/" + creator + "/";
@@ -532,7 +534,7 @@ function actionUpdate(){
 					"author": {
 						"@type": "Person",
 						"name": userMetadata.author,
-						"url": authorLink
+						"url": userWebsite
 					},
 				};
 
