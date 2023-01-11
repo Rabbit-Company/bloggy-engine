@@ -259,7 +259,7 @@ function updateMain(){
 		}
 
 		let avatar = metadata.imagesLink + "/avatars/" + creator + ".png";
-		html += "<li><div class='space-y-6'><a href='/creator/" + creator + "'><img class='mx-auto h-40 w-40 shadow-lg rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "' /></a><div class='space-y-2'><div class='space-y-1 text-lg font-medium leading-6'><a href='/creator/" + creator + "'><h3>" + userMetadata.author + "</h3></a></div></div></div></li>";
+		html += "<li><div class='space-y-6'><a href='/creator/" + creator + "'><img class='mx-auto h-40 w-40 shadow-lg rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "' /></a><div class='space-y-2'><div class='space-y-1 text-lg font-medium leading-6'><a href='/creator/" + creator + "'><h2>" + userMetadata.author + "</h2></a></div></div></div></li>";
 	});
 	tempTemplate = tempTemplate.replaceAll("::creators::", html);
 
