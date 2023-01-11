@@ -637,7 +637,23 @@ function actionUpdate(){
 				"purpose": "maskable"
 			}
 		],
-		"screenshots": [],
+		"screenshots": [
+			{
+				"src": "/images/screenshots/1.jpeg",
+				"sizes": "720x1600",
+				"type": "image/jpg"
+			},
+			{
+				"src": "/images/screenshots/2.jpeg",
+				"sizes": "720x1600",
+				"type": "image/jpg"
+			},
+			{
+				"src": "/images/screenshots/3.jpeg",
+				"sizes": "720x1600",
+				"type": "image/jpg"
+			}
+		],
 		"theme_color": "#0D1117",
 		"background_color": "#0D1117",
 		"display": "standalone",
