@@ -248,6 +248,15 @@ function updateMain(){
 	if(typeof(metadata.github) === 'string') social += "<a href='" + metadata.github + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Github</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5'></path></svg></a>";
 	tempTemplate = tempTemplate.replaceAll("::social::", social);
 
+	let logo = metadata.domain + "/images/logo.png";
+	const jsondl = {
+		"@context": "https://schema.org",
+    "@type": "Organization",
+    "url": metadata.domain,
+    "logo": logo
+	};
+	tempTemplate = tempTemplate.replaceAll("::jsondl::", JSON.stringify(jsondl));
+
 	let html = "";
 	creators.forEach(creator => {
 
@@ -291,6 +300,8 @@ function updateUserMain(username, userMetadata){
 	if(typeof(userMetadata.github) === 'string') social += "<a href='" + userMetadata.github + "' target='_blank' class='text-gray-500 hover:text-gray-600'><span class='sr-only'>Github</span><svg class='h-6 w-6' stroke='currentColor' viewBox='0 0 24 24' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path stroke='none' d='M0 0h24v24H0z' fill='none'></path><path d='M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5'></path></svg></a>";
 	tempTemplate = tempTemplate.replaceAll("::social::", social);
 
+	let jsondl = [];
+
 	let html = "";
 	let counter = 0;
 	Object.keys(userMetadata.posts).reverse().forEach(key => {
@@ -300,10 +311,42 @@ function updateUserMain(username, userMetadata){
 		if(!metadata.extensionHidden) location += ".html";
 		let avatar = metadata.imagesLink + "/avatars/" + username + ".png";
 		let picture = (userMetadata.posts[key].picture.startsWith('http')) ? userMetadata.posts[key].picture : metadata.imagesLink + "/posts/" + username + "/" + userMetadata.posts[key].picture;
+		let url = metadata.domain + location;
+		let authorLink = metadata.domain + "/creator/" + username + "/";
+		let category = (typeof(userMetadata.posts[key].category) === 'string') ? userMetadata.posts[key].category : userMetadata.catego
+
+		jsondl.push({
+			"@context": "http://schema.org",
+			"@type": "BlogPosting",
+			"headline": userMetadata.posts[key].title,
+			"description": userMetadata.posts[key].description,
+			"url": url,
+			"genre": category,
+			"articleSection": category,
+			"keywords": userMetadata.posts[key].keywords,
+			"image": [
+				picture,
+				avatar
+			],
+			"datePublished": userMetadata.posts[key].date,
+			"dateModified": new Date().toISOString(),
+			"publisher": {
+				"@type": "Organization",
+				"name": userMetadata.title,
+				"url": authorLink
+			},
+			"author": {
+				"@type": "Person",
+				"name": userMetadata.author,
+				"url": authorLink
+			},
+		});
+
 		html += "<div class='flex flex-col overflow-hidden rounded-lg shadow-lg'><div class='flex-shrink-0'><img class='h-48 w-full object-cover' loading='lazy' src='" + picture + "' alt='" + userMetadata.posts[key].title + "'></div><div class='flex flex-1 flex-col justify-between bg-white p-6'><div class='flex-1'><p class='text-sm font-medium text-indigo-600'><a href='/creator/" + username + "/?tag=" + userMetadata.posts[key].tag.replaceAll(" ", "_") + "' class='hover:underline'>" + userMetadata.posts[key].tag + "</a></p><a href='" + location + "' class='mt-2 block'><p class='text-xl font-semibold text-gray-900'>" + userMetadata.posts[key].title + "</p><p class='mt-3 text-base text-gray-500'>" + userMetadata.posts[key].description + "</p></a></div><div class='mt-6 flex items-center'><div class='flex-shrink-0'><a href='/creator/" + username + "/'><span class='sr-only'>" + userMetadata.author + "</span><img class='h-10 w-10 rounded-full' loading='lazy' src='" + avatar + "' alt='" + userMetadata.author + "'></a></div><div class='ml-3'><p class='text-sm font-medium text-gray-900'><a href='/creator/" + username + "/' class='hover:underline'>" + userMetadata.author + "</a></p><div class='flex space-x-1 text-sm text-gray-500'><time datetime='" + userMetadata.posts[key].date + "'>" + userMetadata.posts[key].date + "</time><span aria-hidden='true'>&middot;</span><span>" + userMetadata.posts[key].read + " min read</span></div></div></div></div></div>";
 		counter++;
 	});
 	tempTemplate = tempTemplate.replaceAll("::post::", html);
+	tempTemplate = tempTemplate.replaceAll("::jsondl::", JSON.stringify(jsondl));
 
 	fs.writeFileSync(location + "/creator/" + username + "/index.html", tempTemplate);
 	console.log(" - " + colors.blue("index.html") + " - " + colors.green("Success: User page has been updated!"));
