@@ -573,6 +573,83 @@ function actionUpdate(){
 	let robots = "User-agent: *\nDisallow: /cgi-bin/\nSitemap: " + metadata.domain + "/sitemap.xml";
 	fs.writeFileSync(location + "/robots.txt", robots);
 	console.log(" - " + colors.blue("robots.txt") + " - " + colors.green("Success: robots.txt has been created!"));
+
+	// Generate manifest.json
+	let manifest = {
+		"name": metadata.title,
+		"short_name": metadata.title,
+		"id": "/",
+		"start_url": "/",
+		"scope": ".",
+		"description": metadata.description,
+		"categories": ["entertainment", "news", "social"],
+		"icons": [
+			{
+				"src": "images/icons/icon-48x48.png",
+				"sizes": "48x48",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-72x72.png",
+				"sizes": "72x72",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-96x96.png",
+				"sizes": "96x96",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-128x128.png",
+				"sizes": "128x128",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-144x144.png",
+				"sizes": "144x144",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-152x152.png",
+				"sizes": "152x152",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-192x192.png",
+				"sizes": "192x192",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-384x384.png",
+				"sizes": "384x384",
+				"type": "image/png"
+			},
+			{
+				"src": "images/icons/icon-512x512.png",
+				"sizes": "512x512",
+				"type": "image/png"
+
+			},
+			{
+				"src": "images/icons/icon-512x512.png",
+				"sizes": "512x512",
+				"type": "image/png",
+				"purpose": "maskable"
+			}
+		],
+		"screenshots": [],
+		"theme_color": "#0D1117",
+		"background_color": "#0D1117",
+		"display": "standalone",
+		"orientation": "portrait",
+		"related_applications": [],
+		"dir": "ltr",
+		"lang": metadata.language
+	};
+
+	fs.writeFileSync(location + "/manifest.json", JSON.stringify(manifest));
+	console.log(" - " + colors.blue("manifest.json") + " - " + colors.green("Success: manifest.json has been created!"));
+
 }
 
 function actionDelete(){
